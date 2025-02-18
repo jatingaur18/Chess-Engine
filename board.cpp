@@ -1,53 +1,63 @@
-#include <bits/stdc++.h>
-#include <cstdint>
 #include "board.h"
+#include "utils.h"
+#include <iostream>
 using namespace std;
-chessboard::chessboard(){
-  whitePawns = 0x000000000000FF00;
-  whiteRooks = 0x0000000000000081;
-  whiteKnights = 0x0000000000000042;
-  whiteBishops = 0x0000000000000024;
-  whiteQueen = 0x0000000000000008;
-  whiteKing = 0x0000000000000010;
-  blackPawns = 0x00FF000000000000;
-  blackRooks = 0x8100000000000000;
-  blackKnights = 0x4200000000000000;
-  blackBishops = 0x2400000000000000;
-  blackQueen = 0x0800000000000000;
-  blackKing = 0x1000000000000000;
+
+chessboard::chessboard() : bitboard(0ULL) {
+    init_attack_tables();
 }
-void chessboard::fillboard(char board[8][8],uint64_t bitboard,char piece){
-  for(int i = 0;i<64;i++){
-    if(bitboard&(1ULL<<i)){
-      int rank = i/8;
-      int file = i%8;
-      board[rank][file] = piece;
+
+void chessboard::printBoard(const usl &board) const {
+    std::cout << "\n";
+    for (int rank = 0; rank < 8; rank++) {
+        std::cout << 8 - rank << "  ";
+        for (int file = 0; file < 8; file++) {
+            int square = rank * 8 + file;
+            std::cout << " " << getBit(square, board);
+        }
+        std::cout << "\n";
     }
-  }
+    std::cout << "\n    a b c d e f g h\n\n";
+    std::cout << "Bitboard: " << board << "\n";
 }
-void chessboard::printBoard(){
-  char board[8][8];
-  for(int i = 0;i<8;i++){
-    for(int j = 0;j<8;j++){
-      board[i][j] = '.';
+
+usl chessboard::pawn_attacks(Color color, int square) const {
+    usl pawn = 1ULL << square;
+    if (color) {
+        return ((pawn << 7) & FILE_H) | ((pawn << 9) & FILE_A);
+    } else {
+        return ((pawn >> 9) & FILE_H) | ((pawn >> 7) & FILE_A);
     }
-  }
-  fillboard(board, whitePawns, 'P');
-  fillboard(board, blackPawns, 'p');
-  fillboard(board, whiteRooks, 'R');
-  fillboard(board, blackRooks, 'r');
-  fillboard(board, whiteKnights,'N');
-  fillboard(board, blackKnights, 'n');
-  fillboard(board, whiteBishops, 'B');
-  fillboard(board, blackBishops, 'b');
-  fillboard(board, whiteQueen, 'Q');
-  fillboard(board, blackQueen, 'q');
-  fillboard(board, whiteKing, 'K');
-  fillboard(board, blackKing, 'k');
-  for(int i = 0;i<8;i++){
-    for(int j = 0;j<8;j++){
-      cout<<board[i][j]<<" ";
+}
+
+usl chessboard::knight_attacks(int square) const {
+    usl knight = 1ULL << square;
+    usl attacks = ((knight & FILE_AB) << 6) | ((knight & FILE_A) << 15) |
+                  ((knight & FILE_H) << 17) | ((knight & FILE_GH) << 10) |
+                  ((knight & FILE_GH) >> 6) | ((knight & FILE_H) >> 15) |
+                  ((knight & FILE_A) >> 17) | ((knight & FILE_AB) >> 10);
+    return attacks;
+}
+
+usl chessboard::king_attacks(int square) const {
+  usl king = 1ULL << square;
+    return ((king << 8)|(king >> 8)|((king << 1) & FILE_A)|((king >> 1) & FILE_H)
+            |((king << 9) & FILE_A)|((king << 7) & FILE_H)|((king >> 7) & FILE_A)
+            |((king >> 9) & FILE_H));
+}
+
+usl chessboard::rook_attacks(int square, usl occupancy) const {
+    return (~(MSB(occupancy & rook_map[square][0])-1)& rook_map[square][0]
+    | ((LSB(occupancy & rook_map[square][1])<<1)-1)& rook_map[square][1]
+    | ~(MSB(occupancy & rook_map[square][2])-1)& rook_map[square][2]
+    | ((LSB(occupancy & rook_map[square][3])<<1)-1)& rook_map[square][3]);
+}
+
+void chessboard::init_attack_tables() {
+    for (int sq = 0; sq < 64; sq++) {
+        pawn_attacks_table[WHITE][sq] = pawn_attacks(WHITE, sq);
+        pawn_attacks_table[BLACK][sq] = pawn_attacks(BLACK, sq);
+        knight_attacks_table[sq] = knight_attacks(sq);
+        // king_attacks_table[sq] = king_attacks(sq); // if needed
     }
-    cout<<endl;
-  }
-} 
+}
