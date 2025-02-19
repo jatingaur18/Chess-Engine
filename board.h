@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 #include <iostream>
 
@@ -23,13 +24,49 @@ enum Square {
 
 enum Color { WHITE, BLACK };
 
+enum Piece {
+    P, N, B, R, Q, K, p, n, b, r, q, k
+};
+
+
+enum Castling {
+    WK = 1, WQ = 2, BK = 4, BQ = 8
+};
+
 class chessboard {
 public:
     usl bitboard;
+    usl pisces[12]={
+        71776119061217280ULL, 
+        4755801206503243776ULL,
+        2594073385365405696ULL,
+        9295429630892703744ULL,
+        576460752303423488ULL,
+        1152921504606846976ULL,
+        65280ULL,
+        66ULL,
+        36ULL,
+        129ULL,
+        8ULL,
+        16ULL
+    };
+
+    std::string unicode_pieces[12] = {"♟︎", "♞", "♝", "♜", "♛", "♚","♙", "♘", "♗", "♖", "♕", "♔"};
+
+    usl en_passant = 0ULL;
+    usl castling = WK | WQ | BK | BQ;
+    bool side_to_move= WHITE;
+    int halfmove_clock = 0;
+    int fullmove_number = 1;
+
     usl pawn_attacks_table[2][64];
     usl knight_attacks_table[64];
 
     chessboard();
+
+    void FEN(std::string fen);
+
+
 
     inline void setBit(int square, usl &board) {
         board |= (1ULL << square);
@@ -47,10 +84,14 @@ public:
     void printBoard(const usl &board) const;
     void printBoard() const { printBoard(bitboard); }
 
+    void printPisces();
+
+
     usl pawn_attacks(Color color, int square) const;
     usl knight_attacks(int square) const;
     usl king_attacks(int square) const;
     usl rook_attacks(int square, usl occupancy) const;
+    usl bishop_attacks(int square, usl occupancy) const;
 
     void init_attack_tables();
 };
