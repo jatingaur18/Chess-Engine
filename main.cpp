@@ -12,17 +12,27 @@ int main() {
 
     chessboard cb;
     
-    const long long iterations = 1000;
+    const long long iterations = 10000;
+    cb.FEN("5R2/pp6/7p/3pk1p1/4n3/4P3/PPP3PP/2K5 w - g6 0 24");
+    cb.printPisces();
+
+    usl att=0ULL;
     auto start = chrono::high_resolution_clock::now();
-    for (int i = 0; i < iterations; ++i) {
-      cb.FEN("5R2/pp6/7p/3pk1p1/4n3/4P3/PPP3PP/2K5 w - g6 0 24");
-      // run(cb);
-    }
-    auto end = chrono::high_resolution_clock::now();
     
+    
+    for (int i = 0; i < iterations; ++i) {
+
+      att=cb.sqs_attacked(WHITE);
+    
+    }
+    
+    
+    auto end = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::nanoseconds>(end - start);
     cout << "Execution time: " << (duration.count())/iterations << " nanoseconds" << endl;
-    cb.printPisces();
+    cout<<"\n"<<endl;
+    cout << "Attacked squares: "  << endl;
+    cb.printBoard(att);
 
     return 0;
 }

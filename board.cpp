@@ -7,6 +7,8 @@ using namespace std;
 chessboard::chessboard() : bitboard(18446462598732906495ULL) {
     init_attack_tables();
 }
+
+
 void chessboard::printPisces() {
     vector<vector<string>> board(8, vector<string>(8, "."));
     for (int i = 0; i < 12; i++) {
@@ -48,10 +50,8 @@ void chessboard::FEN(std::string fen) {
     std::istringstream iss(fen);
     std::string piece_placement, active_color, castling_rights, en_passant_target, halfmove_clock_str, fullmove_number_str;
 
-    // Read FEN fields
     iss >> piece_placement >> active_color >> castling_rights >> en_passant_target >> halfmove_clock_str >> fullmove_number_str;
 
-    // Parse piece placement
     int rank = 0;
     int file = 0;
     for (char c : piece_placement) {
@@ -77,14 +77,18 @@ void chessboard::FEN(std::string fen) {
                 case 'k': piece = 11; break;
             }
             setBit(rank * 8 + file, pisces[piece]);
+            setBit(rank * 8 + file, bitboard);
+            if(piece <= 5) {
+                setBit(rank * 8 + file, color_bitboards[WHITE]);
+            } else {
+                setBit(rank * 8 + file, color_bitboards[BLACK]);
+            }
             file++;
         }
     }
 
-    // Parse active color
     side_to_move = (active_color == "w") ? WHITE : BLACK;
 
-    // Parse castling rights
     for (char c : castling_rights) {
         switch (c) {
             case 'K': castling |= WK; break;
@@ -94,17 +98,13 @@ void chessboard::FEN(std::string fen) {
         }
     }
 
-    // Parse en passant target square
     if (en_passant_target != "-") {
         int file = en_passant_target[0] - 'a';
         int rank = en_passant_target[1] - '1';
         en_passant = 1ULL << (rank * 8 + file);
     }
 
-    // Parse halfmove clock
     halfmove_clock = std::stoi(halfmove_clock_str);
-
-    // Parse fullmove number
     fullmove_number = std::stoi(fullmove_number_str);
 }
 
@@ -161,11 +161,32 @@ usl chessboard::bishop_attacks(int square, usl occupancy) const {
   | ((LSB(occupancy & bishop_map[square][3])<<1)-1)& bishop_map[square][3]);
 }
 
+usl chessboard::queen_attacks(int square, usl occupancy) const {
+    return rook_attacks(square, occupancy) | bishop_attacks(square, occupancy);
+}
+
 void chessboard::init_attack_tables() {
     for (int sq = 0; sq < 64; sq++) {
         pawn_attacks_table[WHITE][sq] = pawn_attacks(WHITE, sq);
         pawn_attacks_table[BLACK][sq] = pawn_attacks(BLACK, sq);
         knight_attacks_table[sq] = knight_attacks(sq);
-        // king_attacks_table[sq] = king_attacks(sq); // if needed
+        king_attacks_table[sq] = king_attacks(sq); 
     }
+}
+
+
+bool chessboard::is_sq_attacked(int square, Color color) {
+    return pawn_attacks_table[!color][square] & pisces[P+ 6*(color)] |
+           knight_attacks_table[square] & pisces[N+ 6*(color)] |
+           king_attacks_table[square] & pisces[K+ 6*(color)] |
+           rook_attacks(square, bitboard) & (pisces[R+ 6*(color)] | pisces[Q+ 6*(color)]) |
+           bishop_attacks(square, bitboard) & (pisces[B+ 6*(color)] | pisces[Q+ 6*(color)]);
+}
+
+usl chessboard::sqs_attacked(Color color) {
+    usl attacks = 0ULL;
+    for (int i = 0; i < 64; i++) {
+            if(is_sq_attacked(i,color)){setBit(i,attacks);};
+    }
+    return attacks;
 }

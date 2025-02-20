@@ -55,12 +55,14 @@ public:
 
     usl en_passant = 0ULL;
     usl castling = WK | WQ | BK | BQ;
+    usl color_bitboards[2];
     bool side_to_move= WHITE;
     int halfmove_clock = 0;
     int fullmove_number = 1;
 
     usl pawn_attacks_table[2][64];
     usl knight_attacks_table[64];
+    usl king_attacks_table[64];
 
     chessboard();
 
@@ -92,6 +94,10 @@ public:
     usl king_attacks(int square) const;
     usl rook_attacks(int square, usl occupancy) const;
     usl bishop_attacks(int square, usl occupancy) const;
+    usl queen_attacks(int square, usl occupancy) const;
+
+    usl sqs_attacked(Color color);
+    bool is_sq_attacked(int square,Color color);
 
     void init_attack_tables();
 };
