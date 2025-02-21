@@ -8,7 +8,6 @@ chessboard::chessboard() : bitboard(18446462598732906495ULL) {
     init_attack_tables();
 }
 
-
 void chessboard::printPisces() {
     vector<vector<string>> board(8, vector<string>(8, "."));
     for (int i = 0; i < 12; i++) {
@@ -29,9 +28,9 @@ void chessboard::printPisces() {
     }
     std::cout << "\n    a b c d e f g h\n\n";
 
-    std::cout << "Side to move: " << (side_to_move == WHITE ? "White" : "Black") << "\n";
+    std::cout << "Side to move: " << (side == WHITE ? "White" : "Black") << "\n";
     std::cout << "Castling rights: " << (castling & WK ? "K" : "") << (castling & WQ ? "Q" : "") << (castling & BK ? "k" : "") << (castling & BQ ? "q" : "") << "\n";
-    std::cout << "En passant square: " << (LSB(en_passant))<< "\n";
+    std::cout << "En passant square: " << index_to_square(en_passant)<< "\n";
     std::cout << "Halfmove clock: " << halfmove_clock << "\n";
     std::cout << "Fullmove number: " << fullmove_number << "\n";
     std::cout << "\n";
@@ -40,12 +39,13 @@ void chessboard::printPisces() {
 void chessboard::FEN(std::string fen) {
     // Reset the board
     for(auto &i : pisces) i = 0ULL;
+    for(auto &i : color_bitboards) i = 0ULL;
     bitboard = 0ULL;
-    en_passant = 0ULL;
+    en_passant = -1;
     castling = 0;
     halfmove_clock = 0;
     fullmove_number = 1;
-    side_to_move = WHITE;
+    side = WHITE;
 
     std::istringstream iss(fen);
     std::string piece_placement, active_color, castling_rights, en_passant_target, halfmove_clock_str, fullmove_number_str;
@@ -87,7 +87,7 @@ void chessboard::FEN(std::string fen) {
         }
     }
 
-    side_to_move = (active_color == "w") ? WHITE : BLACK;
+    side = (active_color == "w") ? WHITE : BLACK;
 
     for (char c : castling_rights) {
         switch (c) {
@@ -100,8 +100,8 @@ void chessboard::FEN(std::string fen) {
 
     if (en_passant_target != "-") {
         int file = en_passant_target[0] - 'a';
-        int rank = en_passant_target[1] - '1';
-        en_passant = 1ULL << (rank * 8 + file);
+        int rank = 8-(en_passant_target[1] - '0');
+        en_passant = (rank * 8 + file);
     }
 
     halfmove_clock = std::stoi(halfmove_clock_str);

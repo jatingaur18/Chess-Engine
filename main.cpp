@@ -1,5 +1,7 @@
 #include <iostream>
+#include <string>
 #include <chrono>
+#include <math.h>
 #include "board.h"
 using namespace std;
 
@@ -11,19 +13,15 @@ int main() {
     ios::sync_with_stdio(false);
 
     chessboard cb;
-    
-    const long long iterations = 10000;
-    cb.FEN("5R2/pp6/7p/3pk1p1/4n3/4P3/PPP3PP/2K5 w - g6 0 24");
+    string fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P1Pp/2N2Q2/PPPBBP1P/R3K2R b KQkq g3 0 1";
+    const long long iterations = 1000;
+    cb.FEN(fen);
     cb.printPisces();
-
-    usl att=0ULL;
     auto start = chrono::high_resolution_clock::now();
     
     
     for (int i = 0; i < iterations; ++i) {
-
-      att=cb.sqs_attacked(WHITE);
-    
+      // cout<<".";
     }
     
     
@@ -31,8 +29,10 @@ int main() {
     auto duration = chrono::duration_cast<chrono::nanoseconds>(end - start);
     cout << "Execution time: " << (duration.count())/iterations << " nanoseconds" << endl;
     cout<<"\n"<<endl;
-    cout << "Attacked squares: "  << endl;
-    cb.printBoard(att);
-
+    
+    cout<<"Generate pawn moves"<<endl;
+    cb.generate_moves();
+    
+    
     return 0;
 }

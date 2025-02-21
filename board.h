@@ -53,10 +53,10 @@ public:
 
     std::string unicode_pieces[12] = {"♟︎", "♞", "♝", "♜", "♛", "♚","♙", "♘", "♗", "♖", "♕", "♔"};
 
-    usl en_passant = 0ULL;
+    int en_passant = -1;
     usl castling = WK | WQ | BK | BQ;
     usl color_bitboards[2];
-    bool side_to_move= WHITE;
+    bool side= WHITE;
     int halfmove_clock = 0;
     int fullmove_number = 1;
 
@@ -100,7 +100,15 @@ public:
     bool is_sq_attacked(int square,Color color);
 
     void init_attack_tables();
+
+    void generate_moves();
 };
 
 inline usl LSB(usl x) { return x & -x; }
 inline usl MSB(usl x) { return 1ULL << (63 - __builtin_clzll(x)); }
+inline std::string index_to_square(int index) {
+    std::string square = "";
+    square += 'a' + (index % 8);
+    square += '8' - (index / 8);
+    return square;
+} 
