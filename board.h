@@ -102,6 +102,14 @@ public:
     void init_attack_tables();
 
     void generate_moves();
+
+    void generate_pawn_moves(usl board, Color side);
+    void generate_castling_moves(Color side);
+    void generate_knight_moves(usl board, Color side);
+    void generate_bishop_moves(usl board, Color side);
+    void generate_rook_moves(usl board, Color side);
+    void generate_queen_moves(usl board, Color side);
+    void generate_king_moves(usl board, Color side);
 };
 
 inline usl LSB(usl x) { return x & -x; }

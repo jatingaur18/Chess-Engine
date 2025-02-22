@@ -1,2 +1,8 @@
 a.out
 a
+board.d
+board.o
+gen_moves.d
+gen_moves.o
+main.d
+main.o

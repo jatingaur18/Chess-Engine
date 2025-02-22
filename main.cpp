@@ -14,13 +14,14 @@ int main() {
 
     chessboard cb;
     string fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P1Pp/2N2Q2/PPPBBP1P/R3K2R w KQkq g3 0 1";
-    const long long iterations = 1000;
+    const long long iterations = 10000;
     cb.FEN(fen);
     cb.printPisces();
     auto start = chrono::high_resolution_clock::now();
     
     
     for (int i = 0; i < iterations; ++i) {
+      cb.generate_moves();
       // cout<<".";
     }
     
@@ -30,8 +31,7 @@ int main() {
     cout << "Execution time: " << (duration.count())/iterations << " nanoseconds" << endl;
     cout<<"\n"<<endl;
     
-    cout<<"Generate pawn moves"<<endl;
-    cb.generate_moves();
+    cout<<"Generate Moves"<<endl;
     
     
     return 0;
