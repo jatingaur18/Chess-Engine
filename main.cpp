@@ -13,7 +13,7 @@ int main() {
     ios::sync_with_stdio(false);
 
     chessboard cb;
-    string fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P1Pp/2N2Q2/PPPBBP1P/R3K2R b KQkq g3 0 1";
+    string fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P1Pp/2N2Q2/PPPBBP1P/R3K2R w KQkq g3 0 1";
     const long long iterations = 1000;
     cb.FEN(fen);
     cb.printPisces();

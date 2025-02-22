@@ -22,6 +22,7 @@ void chessboard::generate_moves(){
         board=pisces[i];
         if(!side){
             if(i==P){
+                cout<<"--------- Generating Pawn Move --------"<<endl;
                 while(board){
                     source=lsb_ind(board);
                     target=source-8;
@@ -72,6 +73,9 @@ void chessboard::generate_moves(){
                 }
             }
             else if(i==K && !is_sq_attacked(60,BLACK) ){
+                cout<<endl;
+                cout<<"--------- Generating Castling Move --------"<<endl;
+
                 if(castling & WK ){
                     if( !getBit(61) && !getBit(62)
                         && !is_sq_attacked(61,BLACK) 
@@ -91,6 +95,8 @@ void chessboard::generate_moves(){
         }
         else{
             if(i==p){
+                cout<<endl;
+                cout<<"--------- Generating Pawn Move --------"<<endl;
                 while(board){
                     source=lsb_ind(board);
                     target=source+8;
@@ -140,8 +146,10 @@ void chessboard::generate_moves(){
                 }
             }
             else if(i==k && !is_sq_attacked(4,WHITE)){
+                cout<<endl;
+                cout<<"--------- Generating Castling Move --------"<<endl;
+
                 if(castling & BK){
-                    cout<<"BK"<<endl;
                     if( !getBit(5) && !getBit(6)
                         && !is_sq_attacked(5,WHITE) 
                         && !is_sq_attacked(6,WHITE)){
@@ -155,6 +163,116 @@ void chessboard::generate_moves(){
                         cout<<"O-O-O"<<endl;
                     }
                 }
+            }
+        }
+        if(!side? i==N:i==n){
+            cout<<endl;
+            cout<<"--------- Generating Knight Move --------"<<endl;
+
+            while(board){
+                source=lsb_ind(board);
+                attack=knight_attacks_table[source] & (!side? ~color_bitboards[WHITE]: ~color_bitboards[BLACK]);
+                string s=index_to_square(source);
+                while(attack){
+                    target=lsb_ind(attack);
+                    if(getBit(target)){
+                        cout<<s<<"x"<<index_to_square(target)<<endl;
+                    }
+                    else{
+                        cout<<s<<index_to_square(target)<<endl;
+                    }
+                    remBit(target,attack);
+                }
+                remBit(source,board);
+            }
+        }
+
+        else if(!side? i==B:i==b){
+            cout<<endl;
+            cout<<"--------- Generating Bishop Move --------"<<endl;
+
+            while(board){
+                source=lsb_ind(board);
+                attack=bishop_attacks(source,bitboard) & (!side? ~color_bitboards[WHITE]: ~color_bitboards[BLACK]);
+                string s=index_to_square(source);
+                while(attack){
+                    target=lsb_ind(attack);
+                    if(getBit(target)){
+                        cout<<s<<"x"<<index_to_square(target)<<endl;
+                    }
+                    else{
+                        cout<<s<<index_to_square(target)<<endl;
+                    }
+                    remBit(target,attack);
+                }
+                remBit(source,board);
+            }
+        }
+        else if(!side? i==R:i==r){
+            cout<<endl;
+            cout<<"--------- Generating Rook Move --------"<<endl;
+
+            while(board){
+                source=lsb_ind(board);
+                attack=rook_attacks(source,bitboard) & (!side? ~color_bitboards[WHITE]: ~color_bitboards[BLACK]);
+                string s=index_to_square(source);
+                while(attack){
+                    target=lsb_ind(attack);
+                    if(getBit(target)){
+                        cout<<s<<"x"<<index_to_square(target)<<endl;
+                    }
+                    else{
+                        cout<<s<<index_to_square(target)<<endl;
+                    }
+                    remBit(target,attack);
+                }
+                remBit(source,board);
+            }
+        }
+        else if(!side? i==Q:i==q){
+            cout<<endl;
+            cout<<"--------- Generating Queen Move --------"<<endl;
+
+            while(board){
+                source=lsb_ind(board);
+                attack=queen_attacks(source,bitboard) & (!side? ~color_bitboards[WHITE]: ~color_bitboards[BLACK]);
+                string s=index_to_square(source);
+                while(attack){
+                    target=lsb_ind(attack);
+                    if(getBit(target)){
+                        cout<<s<<"x"<<index_to_square(target)<<endl;
+                    }
+                    else{
+                        cout<<s<<index_to_square(target)<<endl;
+                    }
+                    remBit(target,attack);
+                }
+                remBit(source,board);
+            }
+        }
+        if(!side? i==K:i==k){
+            cout<<endl;
+            cout<<"--------- Generating King Move --------"<<endl;
+
+            while(board){
+                source=lsb_ind(board);
+                attack=king_attacks_table[source] & (!side? ~color_bitboards[WHITE]: ~color_bitboards[BLACK]);
+                string s=index_to_square(source);
+                while(attack){
+                    target=lsb_ind(attack);
+                    if(is_sq_attacked(target,(side? WHITE:BLACK))){
+                        remBit(target,attack);
+                        continue;
+                    }
+                    else if(getBit(target)){
+                        cout<<s<<"x"<<index_to_square(target)<<endl;
+                    }
+                    else{
+                        cout<<s<<index_to_square(target)<<endl;
+                    }
+                    remBit(target,attack);
+                }
+                remBit(source,board);
             }
         }
     }
