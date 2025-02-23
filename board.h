@@ -5,6 +5,22 @@
 
 #define usl unsigned long long
 
+#define move_encoding(source,target,piece,promotion_piece,capture,double_push,en_passant,castling) \
+((source) | (target<<6) | (piece << 12) | (promotion_piece <<16 ) | (capture << 20) |  \
+(en_passant << 21) | (double_push << 22) | (castling << 23))
+
+#define move_to_src(move) (move & 0x3f)
+#define move_to_trg(move) ((move & 0xfc0)>>6)
+#define move_to_piece(move) ((move & 0xf000)>>12)
+#define move_to_prom(move) ((move & 0xf0000)>>16)
+#define move_to_cap(move) ((move & 0x100000)>>20)
+#define move_to_dpsh(move) ((move & 0x200000)>>21)
+#define move_to_enp(move) ((move & 0x400000)>>22)
+#define move_to_cast(move) ((move & 0x800000)>>23)
+
+
+
+
 // const files
 constexpr usl FILE_A = 18374403900871474942ULL;
 constexpr usl FILE_H = 9187201950435737471ULL;
