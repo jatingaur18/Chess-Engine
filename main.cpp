@@ -12,7 +12,7 @@ int main() {
     ios::sync_with_stdio(false);
     chessboard cb;
     string fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P1Pp/2N2Q2/PPPBBP1P/R3K2R w KQkq g3 0 1";
-    const long long iterations = 10000;
+    const long long iterations = 1000;
     cb.FEN(fen);
     cb.printPisces();
     int move = 0;
@@ -22,6 +22,7 @@ int main() {
     auto start = chrono::high_resolution_clock::now();
     for (int i = 0; i < iterations; ++i) {
         // cout<<".";
+        cb.generate_moves();
     }
     auto end = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::nanoseconds>(end - start);
@@ -29,8 +30,7 @@ int main() {
     cout << "\n" << endl;
 
     cout << "Generate Moves" << endl;
-    cb.generate_moves();
-    print_move_list();
+    // print_move_list();
 
 
     return 0;

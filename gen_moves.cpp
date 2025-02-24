@@ -190,49 +190,24 @@ void chessboard::generate_king_moves(usl board, Color side) {
 
 void chessboard::generate_moves() {
     
-    // moves_lst moves[1];
     moves->count = 0;
-
-
-    //cout<<moves.count<<endl;
-    
-    //cout<<endl;
-    //cout<<"--------------- Generate Pawn Moves -----------------"<<endl;
 
     if(!side) generate_pawn_moves(pisces[P], (side ? BLACK : WHITE));
     else generate_pawn_moves(pisces[p], (side ? BLACK : WHITE));
     
-    //cout<<endl;
-    //cout<<"--------------- Generate Castling Moves -----------------"<<endl;
-    
     generate_castling_moves((side ? BLACK : WHITE));
-    
-    //cout<<endl;
-    //cout<<"--------------- Generate Knight Moves -----------------"<<endl;
     
     if(!side) generate_knight_moves(pisces[N], (side ? BLACK : WHITE));
     else generate_knight_moves(pisces[n], (side ? BLACK : WHITE));
     
-    //cout<<endl;
-    //cout<<"--------------- Generate Bishop Moves -----------------"<<endl;
-    
     if(!side) generate_bishop_moves(pisces[B], (side ? BLACK : WHITE));
     else generate_bishop_moves(pisces[b], (side ? BLACK : WHITE));
-    
-    //cout<<endl;
-    //cout<<"--------------- Generate Rook Moves -----------------"<<endl;
     
     if(!side) generate_rook_moves(pisces[R], (side ? BLACK : WHITE));
     else generate_rook_moves(pisces[r], (side ? BLACK : WHITE));
     
-    //cout<<endl;
-    //cout<<"--------------- Generate Queen Moves -----------------"<<endl;
-    
     if(!side) generate_queen_moves(pisces[Q], (side ? BLACK : WHITE));
     else generate_queen_moves(pisces[q], (side ? BLACK : WHITE));
-
-    //cout<<endl;
-    //cout<<"--------------- Generate King Moves -----------------"<<endl;
 
     if(!side) generate_king_moves(pisces[K], (side ? BLACK : WHITE));
     else generate_king_moves(pisces[k], (side ? BLACK : WHITE));
