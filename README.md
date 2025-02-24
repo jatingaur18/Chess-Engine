@@ -35,39 +35,12 @@ The chess engine uses bitboards (64-bit integers) for efficient board representa
 
 The engine implements an efficient method for calculating sliding piece moves (rooks, bishops, queens):
 
-1. **Rook Movement Calculation**:
-```cpp
-usl rook_attacks(int square, usl occupancy) {
-    return (~(MSB(occupancy & rook_map[square][0])-1) & rook_map[square][0]
-    | ((LSB(occupancy & rook_map[square][1])<<1)-1) & rook_map[square][1]
-    | ~(MSB(occupancy & rook_map[square][2])-1) & rook_map[square][2]
-    | ((LSB(occupancy & rook_map[square][3])<<1)-1) & rook_map[square][3]);
-}
-```
-
-2. **Bishop Movement Calculation**:
-```cpp
-usl bishop_attacks(int square, usl occupancy) {
-    return (~(MSB(occupancy & bishop_map[square][0])-1) & bishop_map[square][0]
-    | ((LSB(occupancy & bishop_map[square][1])<<1)-1) & bishop_map[square][1]
-    | ~(MSB(occupancy & bishop_map[square][2])-1) & bishop_map[square][2]
-    | ((LSB(occupancy & bishop_map[square][3])<<1)-1) & bishop_map[square][3]);
-}
-```
-
 The sliding piece calculation uses the following techniques:
 - Pre-computed attack tables for each square
 - Efficient bitboard operations (MSB, LSB) for ray tracing
 - Separate handling of each movement direction
 - Occupancy consideration to handle piece blocking
 
-3. **Queen Movement**:
-Queens combine both rook and bishop movements:
-```cpp
-usl queen_attacks(int square, usl occupancy) {
-    return rook_attacks(square, occupancy) | bishop_attacks(square, occupancy);
-}
-```
 
 ### Move Generation
 
