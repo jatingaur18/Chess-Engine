@@ -5,54 +5,16 @@
 
 #define usl unsigned long long
 
-#define move_encoding(source,target,piece,promotion_piece,capture,double_push,en_passant,castling) \
-((source) | (target<<6) | (piece << 12) | (promotion_piece <<16 ) | (capture << 20) |  \
-(en_passant << 21) | (double_push << 22) | (castling << 23))
-
-#define move_to_src(move) (move & 0x3f)
-#define move_to_trg(move) ((move & 0xfc0)>>6)
-#define move_to_piece(move) ((move & 0xf000)>>12)
-#define move_to_prom(move) ((move & 0xf0000)>>16)
-#define move_to_cap(move) ((move & 0x100000)>>20)
-#define move_to_dpsh(move) ((move & 0x200000)>>21)
-#define move_to_enp(move) ((move & 0x400000)>>22)
-#define move_to_cast(move) ((move & 0x800000)>>23)
+#include "globals.h"
 
 
+extern std::string unicode_pieces[12];
 
-
-// const files
-constexpr usl FILE_A = 18374403900871474942ULL;
-constexpr usl FILE_H = 9187201950435737471ULL;
-constexpr usl FILE_GH = 4557430888798830399ULL;
-constexpr usl FILE_AB = 18229723555195321596ULL;
-
-enum Square {
-    a8, b8, c8, d8, e8, f8, g8, h8,
-    a7, b7, c7, d7, e7, f7, g7, h7,
-    a6, b6, c6, d6, e6, f6, g6, h6,
-    a5, b5, c5, d5, e5, f5, g5, h5,
-    a4, b4, c4, d4, e4, f4, g4, h4,
-    a3, b3, c3, d3, e3, f3, g3, h3,
-    a2, b2, c2, d2, e2, f2, g2, h2,
-    a1, b1, c1, d1, e1, f1, g1, h1
-};
-
-enum Color { WHITE, BLACK };
-
-enum Piece {
-    P, N, B, R, Q, K, p, n, b, r, q, k
-};
-
-
-enum Castling {
-    WK = 1, WQ = 2, BK = 4, BQ = 8
-};
 
 class chessboard {
 public:
     usl bitboard;
-    usl pisces[12]={
+    usl pisces[12] = {
         71776119061217280ULL, 
         4755801206503243776ULL,
         2594073385365405696ULL,
@@ -67,12 +29,10 @@ public:
         16ULL
     };
 
-    std::string unicode_pieces[12] = {"♟︎", "♞", "♝", "♜", "♛", "♚","♙", "♘", "♗", "♖", "♕", "♔"};
-
     int en_passant = -1;
     usl castling = WK | WQ | BK | BQ;
     usl color_bitboards[2];
-    bool side= WHITE;
+    bool side = WHITE;
     int halfmove_clock = 0;
     int fullmove_number = 1;
 
@@ -83,8 +43,6 @@ public:
     chessboard();
 
     void FEN(std::string fen);
-
-
 
     inline void setBit(int square, usl &board) {
         board |= (1ULL << square);
@@ -104,7 +62,6 @@ public:
 
     void printPisces();
 
-
     usl pawn_attacks(Color color, int square) const;
     usl knight_attacks(int square) const;
     usl king_attacks(int square) const;
@@ -113,7 +70,7 @@ public:
     usl queen_attacks(int square, usl occupancy) const;
 
     usl sqs_attacked(Color color);
-    bool is_sq_attacked(int square,Color color);
+    bool is_sq_attacked(int square, Color color);
 
     void init_attack_tables();
 
@@ -135,4 +92,39 @@ inline std::string index_to_square(int index) {
     square += 'a' + (index % 8);
     square += '8' - (index / 8);
     return square;
-} 
+}
+
+static inline void add_move(int move){
+    moves->move_list[moves->count]=move;
+    moves->count++;
+}
+
+static inline void move_print(int move){
+
+    // uci standard move notation
+    cout<<"| ";
+
+    cout<<index_to_square(move_to_src(move));
+    cout<<index_to_square(move_to_trg(move));
+    cout<<prom_piece_list[move_to_prom(move)];
+    cout<<"              | "<<unicode_pieces[move_to_piece(move)];
+    cout<<"         | "<<move_to_cap(move);
+    cout<<"           | "<<move_to_dpsh(move);
+    cout<<"                | "<<move_to_enp(move);
+    cout<<"              | "<<move_to_cast(move)<<"        |"<<endl;
+}
+
+static inline void print_move_list(){
+    cout<<" _____________________________________________________________________________________________"<<endl;
+    cout<<"| uci notation       | piece     | capture     | double push      | enpassent      | castling |"<<endl;
+    cout<<"|____________________|___________|_____________|__________________|________________|__________|"<<endl;
+    for(int i=0;i<moves->count;i++){
+        move_print(moves->move_list[i]);
+    }
+    cout<<"|____________________|___________|_____________|__________________|________________|__________|"<<endl;
+    cout<<"\n"<<endl;
+    cout<<"Total no of moves : "<<moves->count<<endl;
+    cout<<"\n"<<endl;
+
+}
+

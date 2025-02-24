@@ -1,13 +1,14 @@
-#include <bits/stdc++.h>
-#include <iostream>
 #include "board.h"
 #include "utils.h"
+#include <sstream>
+#include "vector"
 using namespace std;
+
+std::string unicode_pieces[12] = {"♟︎", "♞", "♝", "♜", "♛", "♚","♙", "♘", "♗", "♖", "♕", "♔"};
 
 chessboard::chessboard() : bitboard(18446462598732906495ULL) {
     init_attack_tables();
 }
-
 void chessboard::printPisces() {
     vector<vector<string>> board(8, vector<string>(8, "."));
     for (int i = 0; i < 12; i++) {
