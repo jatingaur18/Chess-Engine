@@ -31,7 +31,7 @@ void chessboard::printPisces() {
 
     std::cout << "Side to move: " << (side == WHITE ? "White" : "Black") << "\n";
     std::cout << "Castling rights: " << (castling & WK ? "K" : "") << (castling & WQ ? "Q" : "") << (castling & BK ? "k" : "") << (castling & BQ ? "q" : "") << "\n";
-    std::cout << "En passant square: " << index_to_square(en_passant)<< "\n";
+    std::cout << "En passant square: " << (en_passant!= -1 ? (index_to_square(en_passant)):"-")<< "\n";
     std::cout << "Halfmove clock: " << halfmove_clock << "\n";
     std::cout << "Fullmove number: " << fullmove_number << "\n";
     std::cout << "\n";
@@ -98,7 +98,7 @@ void chessboard::FEN(std::string fen) {
             case 'q': castling |= BQ; break;
         }
     }
-
+    
     if (en_passant_target != "-") {
         int file = en_passant_target[0] - 'a';
         int rank = 8-(en_passant_target[1] - '0');

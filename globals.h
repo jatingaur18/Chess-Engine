@@ -24,6 +24,9 @@ inline moves_lst moves[1];
 #define move_to_enp(move) ((move & 0x400000)>>22)
 #define move_to_cast(move) ((move & 0x800000)>>23)
 
+// copy a board state
+#define preserve(cb_copy,cb) memcpy(&cb_copy,&cb,2200);
+
 
 // const files
 constexpr usl FILE_A = 18374403900871474942ULL;
