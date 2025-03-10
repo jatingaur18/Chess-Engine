@@ -17,7 +17,7 @@ int main() {
 
     // std fens
     string pos = "8/8/8/8/8/8/8/8 w - - 0 0";
-    string fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P1Pp/2N2Q2/PPPBBP1P/R3K2R w KQkq g3 0 1";
+    string fen = "r3k2r/p1ppqpb1/bn2pnp1/2pPN3/1p2P1Pp/2N2Q2/PPPBBPpP/R3K2R w KQkq c6 0 1";
 
     //setting up the board 
     cb.FEN(fen);
@@ -37,12 +37,12 @@ int main() {
     //rest of the code    
     cout << "\n" << endl;
     for (int i = 0; i < moves->count; i++) {
-        cout<<"Move: "<<i<<endl;
+        // cout<<"Move: "<<i<<endl;
         move_print(moves->move_list[i]);
         cb.make_move(moves->move_list[i],1,cb_copy);
         cb.printPisces();
         preserve(cb,cb_copy);
-        cb.printPisces();
+        // cb.printPisces();
         // getchar();
         // cout<<"------"<<endl;
     

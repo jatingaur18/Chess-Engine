@@ -23,10 +23,10 @@ void chessboard::generate_pawn_moves(usl board, Color side) {
         string s = index_to_square(source);
         if (target >= 0 && target < 64 && !getBit(target)) {
             if ((side == WHITE && target <= h8) || (side == BLACK && target >= a1)) {
-                add_move(move_encoding(source,target,P,N,0,0,0,0));
-                add_move(move_encoding(source,target,P,B,0,0,0,0));
-                add_move(move_encoding(source,target,P,R,0,0,0,0));
-                add_move(move_encoding(source,target,P,Q,0,0,0,0));
+                add_move(move_encoding(source,target,P+6*(side==BLACK),N+6*(side==BLACK),0,0,0,0));
+                add_move(move_encoding(source,target,P+6*(side==BLACK),B+6*(side==BLACK),0,0,0,0));
+                add_move(move_encoding(source,target,P+6*(side==BLACK),R+6*(side==BLACK),0,0,0,0));
+                add_move(move_encoding(source,target,P+6*(side==BLACK),Q+6*(side==BLACK),0,0,0,0));
             } else {
                 add_move(move_encoding(source,target,P,0,0,0,0,0));
                 if ((side == WHITE && source >= a2 && source <= h2 && target - 8 >= 0 && !getBit(target - 8)) ||
@@ -40,20 +40,21 @@ void chessboard::generate_pawn_moves(usl board, Color side) {
         while (attack) {
             target = lsb_ind(attack);
             if ((side == WHITE && target <= h8) || (side == BLACK && target >= a1)) {
-                add_move(move_encoding(source,target,P,N,1,0,0,0));
-                add_move(move_encoding(source,target,P,B,1,0,0,0));
-                add_move(move_encoding(source,target,P,R,1,0,0,0));
-                add_move(move_encoding(source,target,P,Q,1,0,0,0));
+                add_move(move_encoding(source,target,P+6*(side==BLACK),N+6*(side==BLACK),1,0,0,0));
+                add_move(move_encoding(source,target,P+6*(side==BLACK),B+6*(side==BLACK),1,0,0,0));
+                add_move(move_encoding(source,target,P+6*(side==BLACK),R+6*(side==BLACK),1,0,0,0));
+                add_move(move_encoding(source,target,P+6*(side==BLACK),Q+6*(side==BLACK),1,0,0,0));
             } else {
-                add_move(move_encoding(source,target,P,0,1,0,0,0));
+                add_move(move_encoding(source,target,P+6*(side==BLACK),0,1,0,0,0));
             }
             remBit(target, attack);
         }
 
         if (en_passant != -1) {
-            attack = pawn_attacks_table[side][source] & (1ULL << en_passant);
+            attack = pawn_attacks_table[(side==BLACK)][source] & (1ULL << en_passant);
+            // printBoard(attack);
             if (attack) {
-                add_move(move_encoding(source,target,P,0,1,0,1,0));
+                add_move(move_encoding(source,en_passant,P+6*(side==BLACK),0,1,0,1,0));
             }
         }
 
@@ -76,13 +77,13 @@ void chessboard::generate_castling_moves(Color side) {
     } else {
         if (castling & BK) {
             if (!getBit(5) && !getBit(6) && !is_sq_attacked(5, WHITE) && !is_sq_attacked(6, WHITE)) {
-                add_move(move_encoding(4,6,K,0,0,0,0,1));
+                add_move(move_encoding(4,6,k,0,0,0,0,1));
                 
             }
         }
         if (castling & BQ) {
             if (!getBit(1) && !getBit(2) && !getBit(3) && !is_sq_attacked(2, WHITE) && !is_sq_attacked(3, WHITE)) {
-                add_move(move_encoding(4,1,K,0,0,0,0,1));
+                add_move(move_encoding(4,1,k,0,0,0,0,1));
             }
         }
     }
@@ -98,9 +99,9 @@ void chessboard::generate_knight_moves(usl board, Color side) {
         while (attack) {
             target = lsb_ind(attack);
             if (getBit(target)) {
-                add_move(move_encoding(source,target,N,0,1,0,0,0));
+                add_move(move_encoding(source,target,N+6*(side==BLACK),0,1,0,0,0));
             } else {
-                add_move(move_encoding(source,target,N,0,0,0,0,0));
+                add_move(move_encoding(source,target,N+6*(side==BLACK),0,0,0,0,0));
             }
             remBit(target, attack);
         }
@@ -118,9 +119,9 @@ void chessboard::generate_bishop_moves(usl board, Color side) {
         while (attack) {
             target = lsb_ind(attack);
             if (getBit(target)) {
-                add_move(move_encoding(source,target,B,0,1,0,0,0));
+                add_move(move_encoding(source,target,B+6*(side==BLACK),0,1,0,0,0));
             } else {
-                add_move(move_encoding(source,target,B,0,0,0,0,0));
+                add_move(move_encoding(source,target,B+6*(side==BLACK),0,0,0,0,0));
             }
             remBit(target, attack);
         }
@@ -138,9 +139,9 @@ void chessboard::generate_rook_moves(usl board, Color side) {
         while (attack) {
             target = lsb_ind(attack);
             if (getBit(target)) {
-                add_move(move_encoding(source,target,R,0,1,0,0,0));
+                add_move(move_encoding(source,target,R+6*(side==BLACK),0,1,0,0,0));
             } else {
-                add_move(move_encoding(source,target,R,0,0,0,0,0));
+                add_move(move_encoding(source,target,R+6*(side==BLACK),0,0,0,0,0));
             }
             remBit(target, attack);
         }
@@ -158,9 +159,9 @@ void chessboard::generate_queen_moves(usl board, Color side) {
         while (attack) {
             target = lsb_ind(attack);
             if (getBit(target)) {
-                add_move(move_encoding(source,target,Q,0,1,0,0,0));
+                add_move(move_encoding(source,target,Q+6*(side==BLACK),0,1,0,0,0));
             } else {
-                add_move(move_encoding(source,target,Q,0,0,0,0,0));
+                add_move(move_encoding(source,target,Q+6*(side==BLACK),0,0,0,0,0));
             }
             remBit(target, attack);
         }
@@ -178,9 +179,9 @@ void chessboard::generate_king_moves(usl board, Color side) {
         while (attack) {
             target = lsb_ind(attack);
             if (getBit(target)) {
-                add_move(move_encoding(source,target,K,0,1,0,0,0));
+                add_move(move_encoding(source,target,K+6*(side==BLACK),0,1,0,0,0));
             } else {
-                add_move(move_encoding(source,target,K,0,0,0,0,0));
+                add_move(move_encoding(source,target,K+6*(side==BLACK),0,0,0,0,0));
             }
             remBit(target, attack);
         }

@@ -200,25 +200,37 @@ void chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     int src  = move_to_src(move); 
     int trg = move_to_trg(move);
     int piece = move_to_piece(move);
-    int prom = move_to_prom(move);
-    int cap = move_to_cap(move);
-    int dpsh = move_to_dpsh(move);
+    //flags
+    int prom = move_to_prom(move);//done
+    int cap = move_to_cap(move); //done
+    int dpsh = move_to_dpsh(move); 
     int enp = move_to_enp(move);
     int cast = move_to_cast(move);
-    cout<<side<<endl;
+    
+    remBit(src, pisces[piece]);
+    setBit(trg, pisces[piece]);
+    // setBit(trg,color_bitboards[side])
+    // remBit(src,color_bitboards[side])
 
     if(cap){
         usl cap_piece = 1ULL << trg;
         for(int i = 6*(side==WHITE); i < 6 + 6*(side==WHITE); i++){
-            if(getBit(trg,pisces[i])){
-                remBit(trg,pisces[i]);
-                remBit(trg,color_bitboards[!side]);
-                break;
-            }
-        }
+        (getBit(trg,pisces[i]) && (remBit(trg,pisces[i]) , remBit(trg,color_bitboards[!side]) ,true )) || false;
+        }  
     }
     
-    remBit(src, pisces[piece]);
-    setBit(trg, pisces[piece]);
+    if(prom){
+        remBit(trg,pisces[piece]);
+        setBit(trg,pisces[prom]);
+    }
+     
+    if(dpsh){
+        en_passant = (side == WHITE) ? trg + 8 : trg - 8;
+    }
 
+    if(enp){
+        for(int i = 6*(side==WHITE); i < 6 + 6*(side==WHITE); i++){
+            (getBit(en_passant + 8 -16*(side==BLACK),pisces[i]) && (remBit(en_passant+ 8 -16*(side==BLACK),pisces[i]) , remBit(en_passant+ 8 -16*(side==BLACK),color_bitboards[!side]) ,true )) || false;
+        }
+    }
 }
