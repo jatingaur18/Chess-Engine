@@ -1,5 +1,6 @@
 #pragma once
 using namespace std;
+#include <cstring>
 
 struct moves_lst {
     int move_list[256];

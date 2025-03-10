@@ -28,11 +28,10 @@ public:
         8ULL,
         16ULL
     };
-
     int en_passant = -1;
     usl castling = WK | WQ | BK | BQ;
     usl color_bitboards[2];
-    bool side = WHITE;
+    Color side = WHITE;
     int halfmove_clock = 0;
     int fullmove_number = 1;
 
@@ -43,7 +42,8 @@ public:
     chessboard();
 
     void FEN(std::string fen);
-
+    void make_move(int move,int move_flag,chessboard &cb_copy);
+    void take_back(int move,int move_flag);
     inline void setBit(int square, usl &board) {
         board |= (1ULL << square);
     }

@@ -4,7 +4,7 @@
 #include "vector"
 using namespace std;
 
-std::string unicode_pieces[12] = {"♟︎", "♞", "♝", "♜", "♛", "♚","♙", "♘", "♗", "♖", "♕", "♔"};
+std::string unicode_pieces[12] = {"♙", "♞", "♝", "♜", "♛", "♚","♟", "♘", "♗", "♖", "♕", "♔"};
 
 chessboard::chessboard() : bitboard(18446462598732906495ULL) {
     init_attack_tables();
@@ -190,4 +190,35 @@ usl chessboard::sqs_attacked(Color color) {
             if(is_sq_attacked(i,color)){setBit(i,attacks);};
     }
     return attacks;
+}
+
+void chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
+    
+    chessboard cb = *this;
+    preserve(cb_copy,cb);
+
+    int src  = move_to_src(move); 
+    int trg = move_to_trg(move);
+    int piece = move_to_piece(move);
+    int prom = move_to_prom(move);
+    int cap = move_to_cap(move);
+    int dpsh = move_to_dpsh(move);
+    int enp = move_to_enp(move);
+    int cast = move_to_cast(move);
+    cout<<side<<endl;
+
+    if(cap){
+        usl cap_piece = 1ULL << trg;
+        for(int i = 6*(side==WHITE); i < 6 + 6*(side==WHITE); i++){
+            if(getBit(trg,pisces[i])){
+                remBit(trg,pisces[i]);
+                remBit(trg,color_bitboards[!side]);
+                break;
+            }
+        }
+    }
+    
+    remBit(src, pisces[piece]);
+    setBit(trg, pisces[piece]);
+
 }
