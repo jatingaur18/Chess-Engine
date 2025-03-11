@@ -42,7 +42,7 @@ public:
     chessboard();
 
     void FEN(std::string fen);
-    void make_move(int move,int move_flag,chessboard &cb_copy);
+    int make_move(int move,int move_flag,chessboard &cb_copy);
     void take_back(int move,int move_flag);
     inline void setBit(int square, usl &board) {
         board |= (1ULL << square);

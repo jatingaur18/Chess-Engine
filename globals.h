@@ -1,5 +1,10 @@
 #pragma once
 using namespace std;
+#ifdef WIN64
+    #include <windows.h>
+#else
+    #include <sys/time.h>
+#endif
 #include <cstring>
 
 struct moves_lst {
@@ -34,6 +39,17 @@ constexpr usl FILE_A = 18374403900871474942ULL;
 constexpr usl FILE_H = 9187201950435737471ULL;
 constexpr usl FILE_GH = 4557430888798830399ULL;
 constexpr usl FILE_AB = 18229723555195321596ULL;
+
+constexpr int castling_rights[64] = {
+    7,  15, 15, 15, 3, 15, 15,  11,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    13, 15, 15, 15, 12, 15, 15, 14
+};
 
 
 enum Square {

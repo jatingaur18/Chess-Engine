@@ -192,7 +192,7 @@ usl chessboard::sqs_attacked(Color color) {
     return attacks;
 }
 
-void chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
+int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     
     chessboard cb = *this;
     preserve(cb_copy,cb);
@@ -203,19 +203,21 @@ void chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     //flags
     int prom = move_to_prom(move);//done
     int cap = move_to_cap(move); //done
-    int dpsh = move_to_dpsh(move); 
-    int enp = move_to_enp(move);
+    int dpsh = move_to_dpsh(move); //done
+    int enp = move_to_enp(move);//done
     int cast = move_to_cast(move);
     
     remBit(src, pisces[piece]);
     setBit(trg, pisces[piece]);
-    // setBit(trg,color_bitboards[side])
-    // remBit(src,color_bitboards[side])
+    setBit(trg,color_bitboards[(side==BLACK)]);
+    remBit(src,color_bitboards[(side==BLACK)]);
+    //updating castling rights
+    castling &= castling_rights[src]&castling_rights[trg];
 
     if(cap){
         usl cap_piece = 1ULL << trg;
         for(int i = 6*(side==WHITE); i < 6 + 6*(side==WHITE); i++){
-        (getBit(trg,pisces[i]) && (remBit(trg,pisces[i]) , remBit(trg,color_bitboards[!side]) ,true )) || false;
+        (getBit(trg,pisces[i]) && (remBit(trg,pisces[i]) , remBit(trg,color_bitboards[!side]),remBit(trg,color_bitboards[(side==WHITE)]) ,true )) || false;
         }  
     }
     
@@ -227,10 +229,59 @@ void chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     if(dpsh){
         en_passant = (side == WHITE) ? trg + 8 : trg - 8;
     }
+    if(cast){
+        switch(trg){
+            case g1:
+                remBit(h1,pisces[R]);
+                setBit(f1,pisces[R]);
+                remBit(h1,color_bitboards[(side==BLACK)]);
+                setBit(f1,color_bitboards[(side==BLACK)]);
+                break;
+            case c1:
+                remBit(a1,pisces[R]);
+                setBit(d1,pisces[R]);
+                remBit(a1,color_bitboards[(side==BLACK)]);
+                setBit(d1,color_bitboards[(side==BLACK)]);
+                break;
+            case g8:
+                remBit(h8,pisces[r]);
+                setBit(f8,pisces[r]);
+                remBit(h8,color_bitboards[(side==BLACK)]);
+                setBit(f8,color_bitboards[(side==BLACK)]);
+                break;
+            case c8:
+                remBit(a8,pisces[r]);
+                setBit(d8,pisces[r]);
+                remBit(a8,color_bitboards[(side==BLACK)]);
+                setBit(d8,color_bitboards[(side==BLACK)]);
+                break;
+        }
+    }
 
     if(enp){
         for(int i = 6*(side==WHITE); i < 6 + 6*(side==WHITE); i++){
-            (getBit(en_passant + 8 -16*(side==BLACK),pisces[i]) && (remBit(en_passant+ 8 -16*(side==BLACK),pisces[i]) , remBit(en_passant+ 8 -16*(side==BLACK),color_bitboards[!side]) ,true )) || false;
+            (getBit(en_passant + 8 -16*(side==BLACK),pisces[i]) && (remBit(en_passant+ 8 -16*(side==BLACK),pisces[i]) , remBit(en_passant+ 8 -16*(side==BLACK),color_bitboards[(side==WHITE)]) ,true )) || false;
         }
+    }
+    bitboard= color_bitboards[WHITE] | color_bitboards[BLACK];
+    side = side == WHITE ? BLACK : WHITE;
+    // cout<<"side == "<<side<<endl;
+    
+    if(cap || piece == P){
+        halfmove_clock = 0;
+    }else{
+        halfmove_clock++;
+    }
+    if(side == BLACK){
+        fullmove_number++;
+    }
+    // cout<<__builtin_clzll(pisces[K+6*(side == BLACK ? 1 : 0)])<<endl;
+    if(is_sq_attacked(63 - __builtin_clzll(pisces[K+6*(side == WHITE ? 1 : 0)]),(side == BLACK ? BLACK : WHITE))){
+        // printPisces();
+        // preserve(cb,cb_copy);
+        return 0;
+    }
+    else{
+        return 1;
     }
 }

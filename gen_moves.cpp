@@ -71,7 +71,7 @@ void chessboard::generate_castling_moves(Color side) {
         }
         if (castling & WQ) {
             if (!getBit(57) && !getBit(58) && !getBit(59) && !is_sq_attacked(60, BLACK) && !is_sq_attacked(59, BLACK) && !is_sq_attacked(58, BLACK)) {
-                add_move(move_encoding(60,57,K,0,0,0,0,1));
+                add_move(move_encoding(60,58,K,0,0,0,0,1));
             }
         }
     } else {
@@ -83,7 +83,7 @@ void chessboard::generate_castling_moves(Color side) {
         }
         if (castling & BQ) {
             if (!getBit(1) && !getBit(2) && !getBit(3) && !is_sq_attacked(2, WHITE) && !is_sq_attacked(3, WHITE)) {
-                add_move(move_encoding(4,1,k,0,0,0,0,1));
+                add_move(move_encoding(4,2,k,0,0,0,0,1));
             }
         }
     }

@@ -4,9 +4,17 @@
 #include <string.h>
 
 using namespace std;
+using namespace std::chrono;
 
 void run(chessboard &cb) {
     cb.printBoard();
+}
+
+
+long long get_time() {
+    auto now = high_resolution_clock::now();
+    auto duration = now.time_since_epoch();
+    return duration_cast<nanoseconds>(duration).count();
 }
 
 int main() {
@@ -17,36 +25,29 @@ int main() {
 
     // std fens
     string pos = "8/8/8/8/8/8/8/8 w - - 0 0";
-    string fen = "r3k2r/p1ppqpb1/bn2pnp1/2pPN3/1p2P1Pp/2N2Q2/PPPBBPpP/R3K2R w KQkq c6 0 1";
+    string fen = "r3k2r/p1ppqpb1/bn2pnp1/2pPN3/1p2P1Pp/2N1rQ2/PPPBBP1P/R3Kq1R w KQkq c6 0 1";
 
     //setting up the board 
     cb.FEN(fen);
     cb.printPisces();
     cb_copy.FEN(fen);
-    //calculating the time
-    const long long iterations = 1000;
-    auto start = chrono::high_resolution_clock::now();
-    cb.generate_moves();
-    for (int i = 0; i < iterations; ++i) {
-    }
-    auto end = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::nanoseconds>(end - start);
-    cout << "Execution time: " << (duration.count()) / iterations << " nanoseconds" << endl;
     
-    print_move_list();
+    
     //rest of the code    
     cout << "\n" << endl;
+    cb.generate_moves();
+    long long start_time = get_time();
     for (int i = 0; i < moves->count; i++) {
-        // cout<<"Move: "<<i<<endl;
-        move_print(moves->move_list[i]);
-        cb.make_move(moves->move_list[i],1,cb_copy);
+        if(!cb.make_move(moves->move_list[i],1,cb_copy)){
+            preserve(cb,cb_copy);
+            continue;
+        }
         cb.printPisces();
         preserve(cb,cb_copy);
-        // cb.printPisces();
-        // getchar();
-        // cout<<"------"<<endl;
-    
+        getchar();
     }
+    
+    cout<<"Time: "<<(get_time()-start_time)/1000<<" ns"<<endl;
 
 
     
