@@ -31,7 +31,7 @@ struct moves_lst {
 #define move_to_cast(move) ((move & 0x800000)>>23)
 
 // copy a board state
-#define preserve(cb_copy,cb) memcpy(&cb_copy,&cb,2200);
+// #define preserve(cb_copy,cb) memcpy(&cb_copy,&cb,2200);
 
 
 // const files

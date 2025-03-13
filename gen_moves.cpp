@@ -24,10 +24,10 @@ void chessboard::generate_pawn_moves(usl board, Color side, moves_lst &moves) {
                 add_move(move_encoding(source, target, P + 6 * (side == BLACK), R + 6 * (side == BLACK), 0, 0, 0, 0), moves);
                 add_move(move_encoding(source, target, P + 6 * (side == BLACK), Q + 6 * (side == BLACK), 0, 0, 0, 0), moves);
             } else {
-                add_move(move_encoding(source, target, P, 0, 0, 0, 0, 0), moves);
+                add_move(move_encoding(source, target, P + 6 * (side == BLACK), 0, 0, 0, 0, 0), moves);
                 if ((side == WHITE && source >= a2 && source <= h2 && target - 8 >= 0 && !getBit(target - 8, bitboard)) ||
                     (side == BLACK && source >= a7 && source <= h7 && target + 8 < 64 && !getBit(target + 8, bitboard))) {
-                    add_move(move_encoding(source, target - 8 + side * 16, P, 0, 0, 1, 0, 0), moves);
+                    add_move(move_encoding(source, target - 8 + side * 16, P + 6 * (side == BLACK), 0, 0, 1, 0, 0), moves);
                 }
             }
         }

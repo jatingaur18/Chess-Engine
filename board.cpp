@@ -4,6 +4,9 @@
 #include "vector"
 using namespace std;
 
+// #define preserve(cb_copy,cb) memcpy(&cb_copy,&cb,2200);
+// void preserve(chessboard &cb,chessboard &cb_copy);
+
 std::string unicode_pieces[12] = {"♙", "♞", "♝", "♜", "♛", "♚","♟", "♘", "♗", "♖", "♕", "♔"};
 
 chessboard::chessboard() : bitboard(18446462598732906495ULL) {
@@ -194,18 +197,20 @@ usl chessboard::sqs_attacked(Color color) {
 
 int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     
-    chessboard cb = *this;
-    preserve(cb_copy,cb);
+    // chessboard cb = *this;
+    // preserve(cb_copy,cb);
 
     int src  = move_to_src(move); 
     int trg = move_to_trg(move);
     int piece = move_to_piece(move);
+    // cout<<"piece-> "<<piece<<endl;
     //flags
     int prom = move_to_prom(move);//done
     int cap = move_to_cap(move); //done
     int dpsh = move_to_dpsh(move); //done
     int enp = move_to_enp(move);//done
     int cast = move_to_cast(move);
+    int enp_sq= en_passant;
     
     remBit(src, pisces[piece]);
     setBit(trg, pisces[piece]);
@@ -228,6 +233,9 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
      
     if(dpsh){
         en_passant = (side == WHITE) ? trg + 8 : trg - 8;
+    }
+    else{
+        en_passant = -1;
     }
     if(cast){
         switch(trg){
@@ -260,7 +268,7 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
 
     if(enp){
         for(int i = 6*(side==WHITE); i < 6 + 6*(side==WHITE); i++){
-            (getBit(en_passant + 8 -16*(side==BLACK),pisces[i]) && (remBit(en_passant+ 8 -16*(side==BLACK),pisces[i]) , remBit(en_passant+ 8 -16*(side==BLACK),color_bitboards[(side==WHITE)]) ,true )) || false;
+            (getBit(enp_sq + 8 -16*(side==BLACK),pisces[i]) && (remBit(enp_sq+ 8 -16*(side==BLACK),pisces[i]) , remBit(enp_sq+ 8 -16*(side==BLACK),color_bitboards[(side==WHITE)]) ,true )) || false;
         }
     }
     bitboard= color_bitboards[WHITE] | color_bitboards[BLACK];
@@ -275,11 +283,24 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     if(side == BLACK){
         fullmove_number++;
     }
-    // cout<<__builtin_clzll(pisces[K+6*(side == BLACK ? 1 : 0)])<<endl;
+    // cout<<63- __builtin_clzll(pisces[K + 6 * (side == WHITE ? 1 : 0)])<<" " <<(side == BLACK ? BLACK : WHITE)<<endl;
     if (is_sq_attacked(63 - __builtin_clzll(pisces[K + 6 * (side == WHITE ? 1 : 0)]), (side == BLACK ? BLACK : WHITE))) {
-        cout << "invalid move" << endl;
+        
+        // cout << "invalid move" << endl;
+        // preserve(cb,cb_copy);
         return 0;
     } else {
+        // cout<<"------------VALID MOVE------------"<<endl;
+        // printPisces();
+        // printBoard();
+        // // printBoard();
+        // printBoard(color_bitboards[WHITE]);
+        // printBoard(color_bitboards[BLACK]);
         return 1;
     }
 }
+
+
+// inline void chessboard::deep_copy(const chessboard& source) {
+//     std::memcpy(this, &source, offsetof(chessboard, pawn_attacks_table));
+// }

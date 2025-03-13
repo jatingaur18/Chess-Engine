@@ -57,6 +57,9 @@ public:
 
     void printBoard(const usl &board) const;
     void printBoard() const { printBoard(bitboard); }
+    inline void deep_copy(const chessboard& source) {
+        std::memcpy(this, &source, offsetof(chessboard, pawn_attacks_table));
+    }
 
     void printPisces();
 
