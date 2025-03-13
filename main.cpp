@@ -1,4 +1,5 @@
 #include "board.h"
+#include "globals.h"
 #include <chrono>
 #include <iostream>
 #include <string.h>
@@ -9,7 +10,6 @@ using namespace std::chrono;
 void run(chessboard &cb) {
     cb.printBoard();
 }
-
 
 long long get_time() {
     auto now = high_resolution_clock::now();
@@ -25,29 +25,33 @@ int main() {
 
     // std fens
     string pos = "8/8/8/8/8/8/8/8 w - - 0 0";
-    string fen = "r3k2r/p1ppqpb1/bn2pnp1/2pPN3/1p2P1Pp/2N1rQ2/PPPBBP1P/R3Kq1R w KQkq c6 0 1";
+    string fen = "r3k2r/p1ppqpb1/bn2pnp1/2pPN3/1p2P1Pp/2N1rQ2/PPPBBP1P/R3K2R w KQkq c6 0 1";
 
     //setting up the board 
     cb.FEN(fen);
     cb.printPisces();
     cb_copy.FEN(fen);
-    
-    
+
+    moves_lst moves;
+
     //rest of the code    
     cout << "\n" << endl;
-    cb.generate_moves();
+    cb.generate_moves(moves);
+    print_move_list(moves);
     long long start_time = get_time();
-    for (int i = 0; i < moves->count; i++) {
-        if(!cb.make_move(moves->move_list[i],1,cb_copy)){
+    for (int i = 0; i < moves.count; i++) {
+        // move_print(moves.move_list[i]);
+        // cout<<cb.make_move(moves.move_list[i], 1, cb_copy)<<endl;
+        if (!cb.make_move(moves.move_list[i], 1, cb_copy)) {
             preserve(cb,cb_copy);
             continue;
         }
         cb.printPisces();
         preserve(cb,cb_copy);
-        getchar();
+        // getchar();
     }
     
-    cout<<"Time: "<<(get_time()-start_time)/1000<<" ns"<<endl;
+    cout<<"Time: "<<(get_time()-start_time)<<" ns"<<endl;
 
 
     

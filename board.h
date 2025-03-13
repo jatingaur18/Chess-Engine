@@ -7,9 +7,7 @@
 
 #include "globals.h"
 
-
 extern std::string unicode_pieces[12];
-
 
 class chessboard {
 public:
@@ -42,8 +40,8 @@ public:
     chessboard();
 
     void FEN(std::string fen);
-    int make_move(int move,int move_flag,chessboard &cb_copy);
-    void take_back(int move,int move_flag);
+    int make_move(int move, int move_flag, chessboard &cb_copy);
+    void take_back(int move, int move_flag);
     inline void setBit(int square, usl &board) {
         board |= (1ULL << square);
     }
@@ -74,15 +72,15 @@ public:
 
     void init_attack_tables();
 
-    void generate_moves();
+    void generate_moves(moves_lst &moves);
 
-    void generate_pawn_moves(usl board, Color side);
-    void generate_castling_moves(Color side);
-    void generate_knight_moves(usl board, Color side);
-    void generate_bishop_moves(usl board, Color side);
-    void generate_rook_moves(usl board, Color side);
-    void generate_queen_moves(usl board, Color side);
-    void generate_king_moves(usl board, Color side);
+    void generate_pawn_moves(usl board, Color side, moves_lst &moves);
+    void generate_castling_moves(Color side, moves_lst &moves);
+    void generate_knight_moves(usl board, Color side, moves_lst &moves);
+    void generate_bishop_moves(usl board, Color side, moves_lst &moves);
+    void generate_rook_moves(usl board, Color side, moves_lst &moves);
+    void generate_queen_moves(usl board, Color side, moves_lst &moves);
+    void generate_king_moves(usl board, Color side, moves_lst &moves);
 };
 
 inline usl LSB(usl x) { return x & -x; }
@@ -94,37 +92,33 @@ inline std::string index_to_square(int index) {
     return square;
 }
 
-static inline void add_move(int move){
-    moves->move_list[moves->count]=move;
-    moves->count++;
+static inline void add_move(int move, moves_lst &moves) {
+    moves.move_list[moves.count] = move;
+    moves.count++;
 }
 
-static inline void move_print(int move){
-
+static inline void move_print(int move) {
     // uci standard move notation
-    cout<<"| ";
-
-    cout<<index_to_square(move_to_src(move));
-    cout<<index_to_square(move_to_trg(move));
-    cout<<prom_piece_list[move_to_prom(move)];
-    cout<<"              | "<<unicode_pieces[move_to_piece(move)];
-    cout<<"         | "<<move_to_cap(move);
-    cout<<"           | "<<move_to_dpsh(move);
-    cout<<"                | "<<move_to_enp(move);
-    cout<<"              | "<<move_to_cast(move)<<"        |"<<endl;
+    cout << "| ";
+    cout << index_to_square(move_to_src(move));
+    cout << index_to_square(move_to_trg(move));
+    cout << prom_piece_list[move_to_prom(move)];
+    cout << "              | " << unicode_pieces[move_to_piece(move)];
+    cout << "         | " << move_to_cap(move);
+    cout << "           | " << move_to_dpsh(move);
+    cout << "                | " << move_to_enp(move);
+    cout << "              | " << move_to_cast(move) << "        |" << endl;
 }
 
-static inline void print_move_list(){
-    cout<<" _____________________________________________________________________________________________"<<endl;
-    cout<<"| uci notation       | piece     | capture     | double push      | enpassent      | castling |"<<endl;
-    cout<<"|____________________|___________|_____________|__________________|________________|__________|"<<endl;
-    for(int i=0;i<moves->count;i++){
-        move_print(moves->move_list[i]);
+static inline void print_move_list(moves_lst &moves) {
+    cout << " _____________________________________________________________________________________________" << endl;
+    cout << "| uci notation       | piece     | capture     | double push      | enpassent      | castling |" << endl;
+    cout << "|____________________|___________|_____________|__________________|________________|__________|" << endl;
+    for (int i = 0; i < moves.count; i++) {
+        move_print(moves.move_list[i]);
     }
-    cout<<"|____________________|___________|_____________|__________________|________________|__________|"<<endl;
-    cout<<"\n"<<endl;
-    cout<<"Total no of moves : "<<moves->count<<endl;
-    cout<<"\n"<<endl;
-
+    cout << "|____________________|___________|_____________|__________________|________________|__________|" << endl;
+    cout << "\n" << endl;
+    cout << "Total no of moves : " << moves.count << endl;
+    cout << "\n" << endl;
 }
-

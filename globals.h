@@ -13,7 +13,7 @@ struct moves_lst {
 };
 
 // Define the global variable with inline to allow multiple inclusion
-inline moves_lst moves[1];
+// inline moves_lst moves[1];
 
 
 

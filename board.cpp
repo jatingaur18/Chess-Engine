@@ -276,12 +276,10 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
         fullmove_number++;
     }
     // cout<<__builtin_clzll(pisces[K+6*(side == BLACK ? 1 : 0)])<<endl;
-    if(is_sq_attacked(63 - __builtin_clzll(pisces[K+6*(side == WHITE ? 1 : 0)]),(side == BLACK ? BLACK : WHITE))){
-        // printPisces();
-        // preserve(cb,cb_copy);
+    if (is_sq_attacked(63 - __builtin_clzll(pisces[K + 6 * (side == WHITE ? 1 : 0)]), (side == BLACK ? BLACK : WHITE))) {
+        cout << "invalid move" << endl;
         return 0;
-    }
-    else{
+    } else {
         return 1;
     }
 }
