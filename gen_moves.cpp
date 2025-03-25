@@ -179,7 +179,7 @@ void chessboard::generate_king_moves(usl board, Color side, moves_lst &moves) {
 }
 
 void chessboard::generate_moves(moves_lst &moves) {
-moves.count = 0;
+    moves.count = 0;
     if (!side) generate_pawn_moves(pisces[P], WHITE, moves);
     else generate_pawn_moves(pisces[p], BLACK, moves);
     generate_castling_moves(side, moves);

@@ -196,20 +196,17 @@ usl chessboard::sqs_attacked(Color color) {
 }
 
 int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
-    
-    // chessboard cb = *this;
-    // preserve(cb_copy,cb);
 
     int src  = move_to_src(move); 
     int trg = move_to_trg(move);
     int piece = move_to_piece(move);
-    // cout<<"piece-> "<<piece<<endl;
     //flags
     int prom = move_to_prom(move);//done
     int cap = move_to_cap(move); //done
     int dpsh = move_to_dpsh(move); //done
     int enp = move_to_enp(move);//done
     int cast = move_to_cast(move);
+
     int enp_sq= en_passant;
     
     remBit(src, pisces[piece]);
@@ -222,7 +219,14 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     if(cap){
         usl cap_piece = 1ULL << trg;
         for(int i = 6*(side==WHITE); i < 6 + 6*(side==WHITE); i++){
-        (getBit(trg,pisces[i]) && (remBit(trg,pisces[i]) , remBit(trg,color_bitboards[!side]),remBit(trg,color_bitboards[(side==WHITE)]) ,true )) || false;
+            if (getBit(trg,pisces[i])){
+
+                remBit(trg,pisces[i]); 
+                remBit(trg,color_bitboards[!side]);
+                remBit(trg,color_bitboards[(side==WHITE)]);
+                break; // Only one piece can be captured, so exit early
+            }
+        // (getBit(trg,pisces[i]) && (remBit(trg,pisces[i]) , remBit(trg,color_bitboards[!side]),remBit(trg,color_bitboards[(side==WHITE)]) ,true )) || false;
         }  
     }
     
@@ -267,14 +271,11 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     }
 
     if(enp){
-        for(int i = 6*(side==WHITE); i < 6 + 6*(side==WHITE); i++){
-            (getBit(enp_sq + 8 -16*(side==BLACK),pisces[i]) && (remBit(enp_sq+ 8 -16*(side==BLACK),pisces[i]) , remBit(enp_sq+ 8 -16*(side==BLACK),color_bitboards[(side==WHITE)]) ,true )) || false;
-        }
+        remBit(enp_sq + 8 -16*(side==BLACK),pisces[P + 6 * (side == WHITE)]);
+        remBit(enp_sq + 8 -16*(side==BLACK),color_bitboards[(side==WHITE)]);
     }
     bitboard= color_bitboards[WHITE] | color_bitboards[BLACK];
     side = side == WHITE ? BLACK : WHITE;
-    // cout<<"side == "<<side<<endl;
-    
     if(cap || piece == P){
         halfmove_clock = 0;
     }else{
@@ -283,19 +284,9 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     if(side == BLACK){
         fullmove_number++;
     }
-    // cout<<63- __builtin_clzll(pisces[K + 6 * (side == WHITE ? 1 : 0)])<<" " <<(side == BLACK ? BLACK : WHITE)<<endl;
     if (is_sq_attacked(63 - __builtin_clzll(pisces[K + 6 * (side == WHITE ? 1 : 0)]), (side == BLACK ? BLACK : WHITE))) {
-        
-        // cout << "invalid move" << endl;
-        // preserve(cb,cb_copy);
         return 0;
     } else {
-        // cout<<"------------VALID MOVE------------"<<endl;
-        // printPisces();
-        // printBoard();
-        // // printBoard();
-        // printBoard(color_bitboards[WHITE]);
-        // printBoard(color_bitboards[BLACK]);
         return 1;
     }
 }
