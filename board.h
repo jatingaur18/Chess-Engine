@@ -125,3 +125,4 @@ static inline void print_move_list(moves_lst &moves) {
     cout << "Total no of moves : " << moves.count << endl;
     cout << "\n" << endl;
 }
+

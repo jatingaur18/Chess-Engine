@@ -2,7 +2,7 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -Ofast -Wall -Wextra -Wno-parentheses
 TARGET = a
-SRCS = main.cpp board.cpp gen_moves.cpp
+SRCS = main.cpp board.cpp gen_moves.cpp engine.cpp
 
 all: $(TARGET)
 

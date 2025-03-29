@@ -9,6 +9,7 @@ using namespace std;
 
 std::string unicode_pieces[12] = {"♙", "♞", "♝", "♜", "♛", "♚","♟", "♘", "♗", "♖", "♕", "♔"};
 
+
 chessboard::chessboard() : bitboard(18446462598732906495ULL) {
     init_attack_tables();
 }
@@ -290,6 +291,8 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
         return 1;
     }
 }
+
+
 
 
 // inline void chessboard::deep_copy(const chessboard& source) {
