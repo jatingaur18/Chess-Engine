@@ -15,6 +15,7 @@ long long global_nodes = 0;
 // std fens
 string tricky_2 = "8/2p5/3p4/KP5r/1R3p1k/q7/4P1P1/8 w - - 0 1"; // tricky
 string debug = "k7/8/8/8/1p6/8/P7/K6R w - - 0 0";
+string start_pos_1 = "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1";
 string start_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 string tricky_1 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"; // tricky
 
@@ -73,7 +74,8 @@ void perft_test(chessboard &cb,int depth){
             cout <<" "<<index_to_square(move_to_src(moves.move_list[i]));
             cout << index_to_square(move_to_trg(moves.move_list[i]));
             cout<<"           ";
-            cout<<"|         "<<global_nodes-old_nodes<<endl;
+            cout<<"|         "<<global_nodes-old_nodes;
+            cout<<"|         "<<board_eval(cb)<<endl;
         }
         cb.deep_copy(cb_copy);
     }
@@ -111,7 +113,7 @@ void parse_position(chessboard& cb, const char* input) {
     iss >> token; // Skip "position"
 
     iss >> token; // Get mode ("startpos" or "fen")
-    cout<<token<<endl;
+    // cout<<token<<endl;
     if (token == "startpos") {
         cb.FEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     }
@@ -136,7 +138,6 @@ void parse_position(chessboard& cb, const char* input) {
             }
         }
     }
-    cb.printBoard();
 }
 
 void parse_go(chessboard& cb, const char* input) {
@@ -145,7 +146,7 @@ void parse_go(chessboard& cb, const char* input) {
 
     iss >> token; // Skip "go"
 
-    int depth = -1;
+    int depth = -1; 
     // Parse optional parameters
     while (iss >> token) {
         if (token == "depth") {
@@ -155,11 +156,10 @@ void parse_go(chessboard& cb, const char* input) {
     }
 
     // Default depth if none specified
-    if (depth == -1) {
-        depth = 5; // Reasonable default
-    }
-    cout<<"bestmove d2d4"<<endl;
-    // search_position(cb, depth);
+    depth = 6; // Reasonable default
+    
+    // cout<<"bestmove d2d4"<<endl;
+    search_position(cb, depth);
 }
 
 
@@ -301,11 +301,15 @@ int main() {
     // parse_pos(cb,"position startpos moves a2a3 b4a3",cb_copy); 
     // cb.printPisces();
     // parse_go(cb,"go depth 5",cb_copy);
-
+    // cb.FEN(start_pos);
+    
+    cb.FEN(start_pos);
     uci_loop(cb);
     cb.printPisces();
+    // perft_test(cb, 1);
+    // search_position(cb, 1);
     // cb.board_eval();
-    cout<<board_eval(cb)<<endl;
+    // cout<<board_eval(cb)<<endl;
     // cout<<sizeof(cb.pisces)/sizeof(cb.pisces[0])<<endl;
     return 0;
 }
