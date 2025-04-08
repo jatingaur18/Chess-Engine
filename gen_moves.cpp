@@ -10,7 +10,7 @@ const int piece_values[] = {
 
 int calculate_capture_score(int attacker, int victim, Color side) {
     if (victim == -1) return 0; 
-    return piece_values[victim] - piece_values[attacker];
+    return piece_values[victim] - piece_values[attacker] + 10000;
 }
 
 static inline int lsb_ind(usl bitboard) {
@@ -223,8 +223,5 @@ void chessboard::generate_moves(moves_lst &moves) {
 
     if (!side) generate_king_moves(pisces[K], WHITE, moves);
     else generate_king_moves(pisces[k], BLACK, moves);
-    std::sort(moves.move_list, moves.move_list + moves.count,
-        [](const moves_lst::move &a, const moves_lst::move &b) {
-            return a.score > b.score;
-        });
+
 }

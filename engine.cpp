@@ -7,6 +7,10 @@
 using namespace std;
 
 
+#define MAX_PLY 64
+int killer_moves[MAX_PLY][2] = {0};  // Stores two killer moves per ply
+
+
 int lsb_ind(usl bitboard) {
     if (bitboard) {
         return __builtin_ctzll(bitboard);
@@ -53,6 +57,22 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
     
     moves_lst moves;
     cb.generate_moves(moves);
+
+    for (int i = 0; i < moves.count; i++) {
+        int move = moves.move_list[i].move;
+        if (move == killer_moves[ply][0]) {
+            moves.move_list[i].score = 9000;  // First killer
+        } else if (move == killer_moves[ply][1]) {
+            moves.move_list[i].score = 8000;  // Second killer
+        }
+    }
+    std::sort(moves.move_list, moves.move_list + moves.count,
+        [](const moves_lst::move &a, const moves_lst::move &b) {
+            return a.score > b.score;
+        });
+
+
+
     for (int i = 0; i < moves.count; i++) {
         chessboard cb_after_move;
         cb_after_move.deep_copy(cb);
@@ -62,6 +82,11 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
             int score = -negamax(cb_after_move, depth - 1, -beta, -alpha);
             ply--;
             if (score >= beta) {
+                if (moves.move_list[i].score == 0) {  // Adjust threshold based on your capture scores
+                    // Shift killers: second becomes first, new move becomes first
+                    killer_moves[ply][1] = killer_moves[ply][0];
+                    killer_moves[ply][0] = moves.move_list[i].move;
+                }
                 return beta;
             }
             if (score > alpha) {
@@ -88,6 +113,10 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
 void search_position(chessboard& cb, int depth) {
     ply = 0;
     best=0;
+    for (int p = 0; p < MAX_PLY; p++) {
+        killer_moves[p][0] = 0;
+        killer_moves[p][1] = 0;
+    }
     int score = negamax(cb, depth, -50000, 50000);
     if(best){
         string best_move = index_to_square(move_to_src(best)) + index_to_square(move_to_trg(best));
