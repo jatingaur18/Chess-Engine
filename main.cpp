@@ -17,7 +17,7 @@ string tricky_2 = "8/2p5/3p4/KP5r/1R3p1k/q7/4P1P1/8 w - - 0 1"; // tricky
 string debug = "k7/8/8/8/1p6/8/P7/K6R w - - 0 0";
 string start_pos_1 = "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1";
 string start_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-string tricky_1 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"; // tricky
+string tricky_1 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1n/PPPBBPPP/R3K2R w KQkq - 0 1"; // tricky
 
 void run(chessboard &cb) {
     cb.printBoard();
@@ -47,7 +47,7 @@ static inline void perft(chessboard &cb, int depth) {
         cb_copy.deep_copy(cb);
         // cb.printPisces();
         // cb_copy.printPisces();
-        if (cb.make_move(moves.move_list[i], 1, cb_copy)) {
+        if (cb.make_move(moves.move_list[i].move, 1, cb_copy)) {
             perft(cb, depth - 1);
         }
         cb.deep_copy(cb_copy);
@@ -69,10 +69,10 @@ void perft_test(chessboard &cb,int depth){
         // cb_copy.printPisces();
         long old_nodes = global_nodes;
 
-        if (cb.make_move(moves.move_list[i], 1, cb_copy)) {
+        if (cb.make_move(moves.move_list[i].move, 1, cb_copy)) {
             perft(cb, depth - 1);
-            cout <<" "<<index_to_square(move_to_src(moves.move_list[i]));
-            cout << index_to_square(move_to_trg(moves.move_list[i]));
+            cout <<" "<<index_to_square(move_to_src(moves.move_list[i].move));
+            cout << index_to_square(move_to_trg(moves.move_list[i].move));
             cout<<"           ";
             cout<<"|         "<<global_nodes-old_nodes;
             cout<<"|         "<<board_eval(cb)<<endl;
@@ -91,14 +91,14 @@ int uci_parse(chessboard &cb,string mov){
         prom = mov[4];
     }
     for (int i = 0; i < moves.count; i++) {
-        if(move_to_src(moves.move_list[i])==(src) && move_to_trg(moves.move_list[i])==(trg)){
+        if(move_to_src(moves.move_list[i].move)==(src) && move_to_trg(moves.move_list[i].move)==(trg)){
             if(prom){
-                if(prom == prom_piece_list[move_to_prom(moves.move_list[i])]){
-                    return moves.move_list[i];
+                if(prom == prom_piece_list[move_to_prom(moves.move_list[i].move)]){
+                    return moves.move_list[i].move;
                 }
             }
             else{
-                return moves.move_list[i];
+                return moves.move_list[i].move;
             }
         }
     }
@@ -156,10 +156,15 @@ void parse_go(chessboard& cb, const char* input) {
     }
 
     // Default depth if none specified
-    depth = 6; // Reasonable default
+    // depth = 6; // Reasonable default
     
     // cout<<"bestmove d2d4"<<endl;
+    long long start_time = get_time();
+    // perft_test(cb, depth);
+    
     search_position(cb, depth);
+    long long end_time = get_time();
+    cout<<end_time-start_time<<endl;
 }
 
 
@@ -313,3 +318,15 @@ int main() {
     // cout<<sizeof(cb.pisces)/sizeof(cb.pisces[0])<<endl;
     return 0;
 }
+
+// int main() {
+//     ios::sync_with_stdio(false);
+//     chessboard cb;
+//     cb.FEN(tricky_1); // "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+//     moves_lst moves;
+//     cb.printPisces();
+//     cb.generate_moves(moves);
+//     print_move_list(moves); // Check if captures are ordered by MVV-LVA
+//     // uci_loop(cb);
+//     return 0;
+// }

@@ -32,7 +32,7 @@ public:
     Color side = WHITE;
     int halfmove_clock = 0;
     int fullmove_number = 1;
-
+    int get_piece_at(int square) const;
     usl pawn_attacks_table[2][64];
     usl knight_attacks_table[64];
     usl king_attacks_table[64];
@@ -95,13 +95,13 @@ inline std::string index_to_square(int index) {
     return square;
 }
 
-static inline void add_move(int move, moves_lst &moves) {
-    moves.move_list[moves.count] = move;
+static inline void add_move(int move, moves_lst &moves, int score = 0) {
+    moves.move_list[moves.count].move = move;
+    moves.move_list[moves.count].score = score;
     moves.count++;
 }
 
 static inline void move_print(int move) {
-    // uci standard move notation
     cout << "| ";
     cout << index_to_square(move_to_src(move));
     cout << index_to_square(move_to_trg(move));
@@ -110,17 +110,18 @@ static inline void move_print(int move) {
     cout << "         | " << move_to_cap(move);
     cout << "           | " << move_to_dpsh(move);
     cout << "                | " << move_to_enp(move);
-    cout << "              | " << move_to_cast(move) << "        |" << endl;
+    cout << "              | " << move_to_cast(move) << "        |";
 }
 
 static inline void print_move_list(moves_lst &moves) {
-    cout << " _____________________________________________________________________________________________" << endl;
-    cout << "| uci notation       | piece     | capture     | double push      | enpassent      | castling |" << endl;
-    cout << "|____________________|___________|_____________|__________________|________________|__________|" << endl;
+    cout << " ________________________________________________________________________________________________________" << endl;
+    cout << "| uci notation       | piece     | capture     | double push      | enpassent      | castling |  score   |" << endl;
+    cout << "|____________________|___________|_____________|__________________|________________|__________|__________|" << endl;
     for (int i = 0; i < moves.count; i++) {
-        move_print(moves.move_list[i]);
+        move_print(moves.move_list[i].move);
+        cout<<"      "<<moves.move_list[i].score<<endl;
     }
-    cout << "|____________________|___________|_____________|__________________|________________|__________|" << endl;
+    cout << "|____________________|___________|_____________|__________________|________________|__________|__________|" << endl;
     cout << "\n" << endl;
     cout << "Total no of moves : " << moves.count << endl;
     cout << "\n" << endl;

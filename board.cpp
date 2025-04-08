@@ -292,7 +292,14 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     }
 }
 
-
+int chessboard::get_piece_at(int square) const {
+    for (int i = 0; i < 12; i++) {
+        if (getBit(square, pisces[i])) {
+            return i;
+        }
+    }
+    return -1; // No piece at this square
+}
 
 
 // inline void chessboard::deep_copy(const chessboard& source) {

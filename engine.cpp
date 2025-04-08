@@ -3,6 +3,7 @@
 #include "engine.h"
 #include <sstream>
 #include "vector"
+#include <algorithm>
 using namespace std;
 
 
@@ -24,7 +25,7 @@ int board_eval(chessboard &cb) {
     for (int i = 0; i < 12; i++) {
         usl board = cb.pisces[i];
         while (board) {
-            source = lsb_ind(board); // Get the least significant bit index
+            source = lsb_ind(board); 
             int extra = piece_scores[i][source];
             // cout<< i<<" "<<source<<" "<<extra<<endl;
             eval += weight[i]  + extra;
@@ -36,8 +37,8 @@ int board_eval(chessboard &cb) {
     return (cb.side == WHITE) ? eval : -eval;
 }
 
-int ply = 0; // Global or passed as parameter
-int best;    // Global variable to store the best move
+int ply = 0; 
+int best; 
 
 static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
     if (depth == 0) {
@@ -55,7 +56,7 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
     for (int i = 0; i < moves.count; i++) {
         chessboard cb_after_move;
         cb_after_move.deep_copy(cb);
-        if (cb_after_move.make_move(moves.move_list[i], 1, cb_after_move)) {
+        if (cb_after_move.make_move(moves.move_list[i].move, 1, cb_after_move)) {
             legal_mov++;
             ply++;
             int score = -negamax(cb_after_move, depth - 1, -beta, -alpha);
@@ -66,7 +67,7 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
             if (score > alpha) {
                 alpha = score;
                 if (ply == 0) {
-                    best_now = moves.move_list[i];
+                    best_now = moves.move_list[i].move;
                 }
             }
         }

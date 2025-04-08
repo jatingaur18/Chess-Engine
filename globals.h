@@ -8,7 +8,11 @@ using namespace std;
 #include <cstring>
 
 struct moves_lst {
-    int move_list[256];
+    struct move {
+        int move;
+        int score;
+    };
+    move move_list[256];
     int count = 0;
 };
 
