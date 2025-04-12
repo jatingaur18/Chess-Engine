@@ -8,6 +8,8 @@ using namespace std;
 
 
 #define MAX_PLY 64
+
+
 int killer_moves[MAX_PLY][2] = {0};  // Stores two killer moves per ply
 
 

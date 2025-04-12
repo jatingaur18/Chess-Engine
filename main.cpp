@@ -17,7 +17,7 @@ string tricky_2 = "8/2p5/3p4/KP5r/1R3p1k/q7/4P1P1/8 w - - 0 1"; // tricky
 string debug = "k7/8/8/8/1p6/8/P7/K6R w - - 0 0";
 string start_pos_1 = "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1";
 string start_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-string tricky_1 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1n/PPPBBPPP/R3K2R w KQkq - 0 1"; // tricky
+string tricky_1 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"; // tricky
 
 void run(chessboard &cb) {
     cb.printBoard();
@@ -55,12 +55,17 @@ static inline void perft(chessboard &cb, int depth) {
 }
 
 void perft_test(chessboard &cb,int depth){
+    moves_lst moves;
+    cb.generate_moves(moves);
+    for(int i = 0; i < moves.count; i++){
+        cout <<" "<<index_to_square(move_to_src(moves.move_list[i].move));
+            cout << index_to_square(move_to_trg(moves.move_list[i].move));
+            cout<<endl;
+    }
+    cout<<endl;
     cout<<"-----------Perft Test----------"<<endl;
     cout<<" Move           |        Nodes "<<endl;
     cout<<"----------------|--------------"<<endl;
-    moves_lst moves;
-    cb.generate_moves(moves);
-    
     chessboard cb_copy;
     for (int i = 0; i < moves.count; i++) {
         // move_print(moves.move_list[i]); 
@@ -70,12 +75,20 @@ void perft_test(chessboard &cb,int depth){
         long old_nodes = global_nodes;
 
         if (cb.make_move(moves.move_list[i].move, 1, cb_copy)) {
-            perft(cb, depth - 1);
+            // perft(cb, depth - 1);
             cout <<" "<<index_to_square(move_to_src(moves.move_list[i].move));
             cout << index_to_square(move_to_trg(moves.move_list[i].move));
             cout<<"           ";
-            cout<<"|         "<<global_nodes-old_nodes;
-            cout<<"|         "<<board_eval(cb)<<endl;
+            // cout<<"|         "<<global_nodes-old_nodes;
+            // cout<<"|         "<<board_eval(cb)<<endl;
+            std::cout << std::hex << cb.hash_board;
+            cout<<"    ->    ";
+            if(cb.hash_test()){
+                cout<<"Hash Matched"<<endl;
+            }
+            else{
+                cout<<"Hash Mismatched"<<endl;
+            }
         }
         cb.deep_copy(cb_copy);
     }
@@ -261,6 +274,7 @@ int main() {
     ios::sync_with_stdio(false);
     // initalizing board
     chessboard cb;
+    
     chessboard cb_copy;
     // cb.FEN(tricky_1);
     // cb.printPisces();
@@ -306,11 +320,27 @@ int main() {
     // parse_pos(cb,"position startpos moves a2a3 b4a3",cb_copy); 
     // cb.printPisces();
     // parse_go(cb,"go depth 5",cb_copy);
-    // cb.FEN(start_pos);
-    
-    cb.FEN(start_pos);
-    uci_loop(cb);
+    // cb.printPisces();
+    // cout<<"tricky_1"<<endl;
+    // cb.FEN(tricky_1);
     cb.printPisces();
+    // cb.printPisces();
+    // perft_test(cb, 1);
+    moves_lst moves;
+    cb.generate_moves(moves);
+    for(int i = 0; i < moves.count; i++){
+        cout <<" "<<index_to_square(move_to_src(moves.move_list[i].move));
+            cout << index_to_square(move_to_trg(moves.move_list[i].move));
+            cout<<endl;
+    }
+    cout<<moves.count<<endl;
+
+    // cout<<cb.cst_keys[0]<<endl;
+    
+    // cb.FEN(start_pos);
+    // uci_loop(cb);
+
+
     // perft_test(cb, 1);
     // search_position(cb, 1);
     // cb.board_eval();

@@ -2,17 +2,42 @@
 #include "utils.h"
 #include <sstream>
 #include "vector"
-using namespace std;
+#include <random>
 
-// #define preserve(cb_copy,cb) memcpy(&cb_copy,&cb,2200);
-// void preserve(chessboard &cb,chessboard &cb_copy);
+using namespace std;
 
 std::string unicode_pieces[12] = {"♙", "♞", "♝", "♜", "♛", "♚","♟", "♘", "♗", "♖", "♕", "♔"};
 
 
+unsigned int random_state = 1804289383;
+
+unsigned int get_random_U32_number(){
+
+    unsigned int number = random_state;
+    
+    number ^= number << 13;
+    number ^= number >> 17;
+    number ^= number << 5;
+    random_state = number;
+    return number;
+}
+usl get_random_usl_number(){
+    usl n1, n2, n3, n4;
+    
+    n1 = (usl)(get_random_U32_number()) & 0xFFFF;
+    n2 = (usl)(get_random_U32_number()) & 0xFFFF;
+    n3 = (usl)(get_random_U32_number()) & 0xFFFF;
+    n4 = (usl)(get_random_U32_number()) & 0xFFFF;
+    
+    return n1 | (n2 << 16) | (n3 << 32) | (n4 << 48);
+}
+
 chessboard::chessboard() : bitboard(18446462598732906495ULL) {
     init_attack_tables();
+    init_zobrist_keys();
+    init_hash();
 }
+
 void chessboard::printPisces() {
     vector<vector<string>> board(8, vector<string>(8, "."));
     for (int i = 0; i < 12; i++) {
@@ -38,6 +63,7 @@ void chessboard::printPisces() {
     std::cout << "En passant square: " << (en_passant!= -1 ? (index_to_square(en_passant)):"-")<< "\n";
     std::cout << "Halfmove clock: " << halfmove_clock << "\n";
     std::cout << "Fullmove number: " << fullmove_number << "\n";
+    std::cout << "Hash: " << hash_board << "\n";
     std::cout << "\n";
 }
 
@@ -111,6 +137,7 @@ void chessboard::FEN(std::string fen) {
 
     halfmove_clock = std::stoi(halfmove_clock_str);
     fullmove_number = std::stoi(fullmove_number_str);
+    init_hash();
 }
 
 void chessboard::printBoard(const usl &board) const {
@@ -146,7 +173,7 @@ usl chessboard::knight_attacks(int square) const {
 }
 
 usl chessboard::king_attacks(int square) const {
-  usl king = 1ULL << square;
+    usl king = 1ULL << square;
     return ((king << 8)|(king >> 8)|((king << 1) & FILE_A)|((king >> 1) & FILE_H)
             |((king << 9) & FILE_A)|((king << 7) & FILE_H)|((king >> 7) & FILE_A)
             |((king >> 9) & FILE_H));
@@ -160,10 +187,10 @@ usl chessboard::rook_attacks(int square, usl occupancy) const {
 }
 
 usl chessboard::bishop_attacks(int square, usl occupancy) const {
-  return (~(MSB(occupancy & bishop_map[square][0])-1)& bishop_map[square][0]
-  | ((LSB(occupancy & bishop_map[square][1])<<1)-1)& bishop_map[square][1]
-  | ~(MSB(occupancy & bishop_map[square][2])-1)& bishop_map[square][2]
-  | ((LSB(occupancy & bishop_map[square][3])<<1)-1)& bishop_map[square][3]);
+    return (~(MSB(occupancy & bishop_map[square][0])-1)& bishop_map[square][0]
+    | ((LSB(occupancy & bishop_map[square][1])<<1)-1)& bishop_map[square][1]
+    | ~(MSB(occupancy & bishop_map[square][2])-1)& bishop_map[square][2]
+    | ((LSB(occupancy & bishop_map[square][3])<<1)-1)& bishop_map[square][3]);
 }
 
 usl chessboard::queen_attacks(int square, usl occupancy) const {
@@ -178,7 +205,6 @@ void chessboard::init_attack_tables() {
         king_attacks_table[sq] = king_attacks(sq); 
     }
 }
-
 
 bool chessboard::is_sq_attacked(int square, Color color) {
     return pawn_attacks_table[!color][square] & pisces[P+ 6*(color)] |
@@ -197,15 +223,14 @@ usl chessboard::sqs_attacked(Color color) {
 }
 
 int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
-
     int src  = move_to_src(move); 
     int trg = move_to_trg(move);
     int piece = move_to_piece(move);
     //flags
-    int prom = move_to_prom(move);//done
-    int cap = move_to_cap(move); //done
-    int dpsh = move_to_dpsh(move); //done
-    int enp = move_to_enp(move);//done
+    int prom = move_to_prom(move);
+    int cap = move_to_cap(move);
+    int dpsh = move_to_dpsh(move);
+    int enp = move_to_enp(move);
     int cast = move_to_cast(move);
 
     int enp_sq= en_passant;
@@ -214,34 +239,45 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     setBit(trg, pisces[piece]);
     setBit(trg,color_bitboards[(side==BLACK)]);
     remBit(src,color_bitboards[(side==BLACK)]);
-    //updating castling rights
+    // updating castling rights
     castling &= castling_rights[src]&castling_rights[trg];
+
+
+    usl hash = hash_board;
+    hash ^= piece_keys[piece][src];
+    hash ^= piece_keys[piece][trg]; 
 
     if(cap){
         usl cap_piece = 1ULL << trg;
         for(int i = 6*(side==WHITE); i < 6 + 6*(side==WHITE); i++){
             if (getBit(trg,pisces[i])){
-
                 remBit(trg,pisces[i]); 
                 remBit(trg,color_bitboards[!side]);
                 remBit(trg,color_bitboards[(side==WHITE)]);
-                break; // Only one piece can be captured, so exit early
+                hash ^= piece_keys[i][trg]; 
+                break;
             }
-        // (getBit(trg,pisces[i]) && (remBit(trg,pisces[i]) , remBit(trg,color_bitboards[!side]),remBit(trg,color_bitboards[(side==WHITE)]) ,true )) || false;
         }  
     }
     
     if(prom){
         remBit(trg,pisces[piece]);
         setBit(trg,pisces[prom]);
+        hash ^= piece_keys[piece][trg]; 
+        hash ^= piece_keys[prom][trg]; 
     }
-     
+    if(en_passant!=-1){
+        hash ^= enp_keys[en_passant]; //removing earlier enp
+    }
     if(dpsh){
         en_passant = (side == WHITE) ? trg + 8 : trg - 8;
+        hash ^= enp_keys[en_passant]; //adding new enp
     }
     else{
         en_passant = -1;
     }
+    hash ^= cst_keys[castling]; //updating castling rights
+
     if(cast){
         switch(trg){
             case g1:
@@ -270,10 +306,12 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
                 break;
         }
     }
+    hash ^= cst_keys[castling]; //updating castling rights
 
     if(enp){
         remBit(enp_sq + 8 -16*(side==BLACK),pisces[P + 6 * (side == WHITE)]);
         remBit(enp_sq + 8 -16*(side==BLACK),color_bitboards[(side==WHITE)]);
+        hash ^= piece_keys[pisces[P + 6 * (side == WHITE)]][enp_sq + 8 -16*(side==BLACK)]; 
     }
     bitboard= color_bitboards[WHITE] | color_bitboards[BLACK];
     side = side == WHITE ? BLACK : WHITE;
@@ -285,6 +323,10 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     if(side == BLACK){
         fullmove_number++;
     }
+    hash ^= side == WHITE ? 0ULL:side_key ;
+    hash_board = hash;
+    // std::cout << std::hex << hash << std::endl;
+    // init_hash();
     if (is_sq_attacked(63 - __builtin_clzll(pisces[K + 6 * (side == WHITE ? 1 : 0)]), (side == BLACK ? BLACK : WHITE))) {
         return 0;
     } else {
@@ -298,10 +340,72 @@ int chessboard::get_piece_at(int square) const {
             return i;
         }
     }
-    return -1; // No piece at this square
+    return -1;
 }
 
+void chessboard::init_zobrist_keys(){
+    for(int i=0;i<12;i++){
+        for(int j=0;j<64;j++){
+            piece_keys[i][j] = get_random_usl_number();
+        }
+    }
+    
+    for(int j=0;j<64;j++){
+        enp_keys[j] = get_random_usl_number();
+    }
+    
+    for(int j=0;j<16;j++){
+        cst_keys[j] = get_random_usl_number();
+    }
+    side_key = get_random_usl_number();
+}
 
-// inline void chessboard::deep_copy(const chessboard& source) {
-//     std::memcpy(this, &source, offsetof(chessboard, pawn_attacks_table));
-// }
+void chessboard::init_hash(){
+    int source;
+    usl hash = 0ULL;
+    for (int i = 0; i < 12; i++) {
+        usl board = pisces[i];
+        while (board) {
+            source = __builtin_ctzll(board); 
+            hash ^= piece_keys[i][source];
+            remBit(source, board);
+        }
+    }
+    if(en_passant != -1){
+        hash ^= enp_keys[en_passant];
+    }
+    hash ^= cst_keys[castling];
+    hash ^= side == WHITE ? 0ULL:side_key ;
+    // cout<<hash<<endl;
+    // std::cout << std::hex << hash << std::endl;
+    hash_board = hash;
+}
+
+bool chessboard::hash_test(){
+    int source;
+    usl hash = 0ULL;
+    for (int i = 0; i < 12; i++) {
+        usl board = pisces[i];
+        while (board) {
+            source = __builtin_ctzll(board); 
+            hash ^= piece_keys[i][source];
+            remBit(source, board);
+        }
+    }
+    if(en_passant != -1){
+        hash ^= enp_keys[en_passant];
+    }
+    hash ^= cst_keys[castling];
+    hash ^= side == WHITE ? 0ULL:side_key ;
+    // cout<<hash<<endl;
+    // std::cout << std::hex << hash << std::endl;
+    // std::cout << std::hex << hash_board << std::endl;
+    // hash_board = hash;
+    if(hash!=hash_board){
+
+        std::cout << std::hex << hash<<"         ";
+        std::cout << std::hex << hash_board<<"          ";
+        return false;
+    }
+    return true;
+}

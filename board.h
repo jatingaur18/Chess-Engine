@@ -9,6 +9,8 @@
 
 extern std::string unicode_pieces[12];
 
+
+
 class chessboard {
 public:
     usl bitboard;
@@ -26,13 +28,23 @@ public:
         8ULL,
         16ULL
     };
-    int en_passant = -1;
     usl castling = WK | WQ | BK | BQ;
     usl color_bitboards[2];
-    Color side = WHITE;
+    
+    int en_passant = -1;
     int halfmove_clock = 0;
     int fullmove_number = 1;
     int get_piece_at(int square) const;
+    
+    Color side = WHITE;
+    
+    
+    usl piece_keys[12][64];
+    usl enp_keys[64];
+    usl cst_keys[16];
+    usl side_key;
+    
+    usl hash_board = 0ULL;
     usl pawn_attacks_table[2][64];
     usl knight_attacks_table[64];
     usl king_attacks_table[64];
@@ -69,14 +81,14 @@ public:
     usl rook_attacks(int square, usl occupancy) const;
     usl bishop_attacks(int square, usl occupancy) const;
     usl queen_attacks(int square, usl occupancy) const;
-
+    
     usl sqs_attacked(Color color);
     bool is_sq_attacked(int square, Color color);
-
+    
     void init_attack_tables();
-
+    
     void generate_moves(moves_lst &moves);
-
+    
     void generate_pawn_moves(usl board, Color side, moves_lst &moves);
     void generate_castling_moves(Color side, moves_lst &moves);
     void generate_knight_moves(usl board, Color side, moves_lst &moves);
@@ -84,6 +96,10 @@ public:
     void generate_rook_moves(usl board, Color side, moves_lst &moves);
     void generate_queen_moves(usl board, Color side, moves_lst &moves);
     void generate_king_moves(usl board, Color side, moves_lst &moves);
+    
+    void init_zobrist_keys();
+    void init_hash();
+    bool hash_test();
 };
 
 inline usl LSB(usl x) { return x & -x; }
@@ -126,4 +142,3 @@ static inline void print_move_list(moves_lst &moves) {
     cout << "Total no of moves : " << moves.count << endl;
     cout << "\n" << endl;
 }
-
