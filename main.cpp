@@ -43,12 +43,34 @@ static inline void perft(chessboard &cb, int depth) {
     
     chessboard cb_copy;
     for (int i = 0; i < moves.count; i++) {
+        long old_nodes = global_nodes;
+
         // move_print(moves.move_list[i]); 
         cb_copy.deep_copy(cb);
         // cb.printPisces();
         // cb_copy.printPisces();
         if (cb.make_move(moves.move_list[i].move, 1, cb_copy)) {
             perft(cb, depth - 1);
+            // cout <<" "<<index_to_square(move_to_src(moves.move_list[i].move));
+            // cout << index_to_square(move_to_trg(moves.move_list[i].move));
+            // cout<<"           ";
+            // cout<<"|         "<<global_nodes-old_nodes;
+            // cout<<"|         "<<board_eval(cb)<<endl;
+            // std::cout << std::hex << cb.hash_board;
+            // cout<<"    ->    ";
+            if(cb.hash_test()){
+                // cout<<"Hash Matched"<<endl;
+            }
+            else{
+                cout <<" fucked move "<<index_to_square(move_to_src(moves.move_list[i].move));
+            cout << index_to_square(move_to_trg(moves.move_list[i].move));
+            cout<<endl;
+                cb.printPisces();
+
+                cout<<"Hash Mismatched"<<endl;
+                exit(0);
+
+            }
         }
         cb.deep_copy(cb_copy);
     }
@@ -57,15 +79,15 @@ static inline void perft(chessboard &cb, int depth) {
 void perft_test(chessboard &cb,int depth){
     moves_lst moves;
     cb.generate_moves(moves);
-    for(int i = 0; i < moves.count; i++){
-        cout <<" "<<index_to_square(move_to_src(moves.move_list[i].move));
-            cout << index_to_square(move_to_trg(moves.move_list[i].move));
-            cout<<endl;
-    }
-    cout<<endl;
-    cout<<"-----------Perft Test----------"<<endl;
-    cout<<" Move           |        Nodes "<<endl;
-    cout<<"----------------|--------------"<<endl;
+    // for(int i = 0; i < moves.count; i++){
+    //     cout <<" "<<index_to_square(move_to_src(moves.move_list[i].move));
+    //         cout << index_to_square(move_to_trg(moves.move_list[i].move));
+    //         cout<<endl;
+    // }
+    // cout<<endl;
+    // cout<<"-----------Perft Test----------"<<endl;
+    // cout<<" Move           |        Nodes "<<endl;
+    // cout<<"----------------|--------------"<<endl;
     chessboard cb_copy;
     for (int i = 0; i < moves.count; i++) {
         // move_print(moves.move_list[i]); 
@@ -75,19 +97,24 @@ void perft_test(chessboard &cb,int depth){
         long old_nodes = global_nodes;
 
         if (cb.make_move(moves.move_list[i].move, 1, cb_copy)) {
-            // perft(cb, depth - 1);
-            cout <<" "<<index_to_square(move_to_src(moves.move_list[i].move));
-            cout << index_to_square(move_to_trg(moves.move_list[i].move));
-            cout<<"           ";
+            perft(cb, depth - 1);
+            // cout <<" "<<index_to_square(move_to_src(moves.move_list[i].move));
+            // cout << index_to_square(move_to_trg(moves.move_list[i].move));
+            // cout<<"           ";
             // cout<<"|         "<<global_nodes-old_nodes;
             // cout<<"|         "<<board_eval(cb)<<endl;
-            std::cout << std::hex << cb.hash_board;
-            cout<<"    ->    ";
+            // std::cout << std::hex << cb.hash_board;
+            // cout<<"    ->    ";
             if(cb.hash_test()){
-                cout<<"Hash Matched"<<endl;
+                // cout<<"Hash Matched"<<endl;
             }
             else{
+                cout <<" fucked move "<<index_to_square(move_to_src(moves.move_list[i].move));
+            cout << index_to_square(move_to_trg(moves.move_list[i].move));
+            cout<<endl;
+                cb.printPisces();
                 cout<<"Hash Mismatched"<<endl;
+                exit(0);
             }
         }
         cb.deep_copy(cb_copy);
@@ -278,13 +305,13 @@ int main() {
     chessboard cb_copy;
     // cb.FEN(tricky_1);
     // cb.printPisces();
-    // cb_copy.FEN(start_pos);
+    cb_copy.FEN(tricky_1);
+    cb.FEN(tricky_1);
     
     
 
     //setting up the board 
     // try {
-    //     cb.FEN(start_pos);
     //     cb.printPisces();
     //     cb_copy.FEN(start_pos);
     // } catch (const std::invalid_argument &e) {
@@ -325,15 +352,9 @@ int main() {
     // cb.FEN(tricky_1);
     cb.printPisces();
     // cb.printPisces();
-    // perft_test(cb, 1);
-    moves_lst moves;
-    cb.generate_moves(moves);
-    for(int i = 0; i < moves.count; i++){
-        cout <<" "<<index_to_square(move_to_src(moves.move_list[i].move));
-            cout << index_to_square(move_to_trg(moves.move_list[i].move));
-            cout<<endl;
-    }
-    cout<<moves.count<<endl;
+    perft_test(cb, 3);
+    cout << "Nodes: " << global_nodes << endl;
+
 
     // cout<<cb.cst_keys[0]<<endl;
     

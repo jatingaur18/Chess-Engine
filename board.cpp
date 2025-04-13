@@ -235,15 +235,20 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
 
     int enp_sq= en_passant;
     
+    usl hash = hash_board;
+    
     remBit(src, pisces[piece]);
     setBit(trg, pisces[piece]);
     setBit(trg,color_bitboards[(side==BLACK)]);
     remBit(src,color_bitboards[(side==BLACK)]);
+
+    hash ^= cst_keys[castling]; //updating castling rights
+
+
     // updating castling rights
     castling &= castling_rights[src]&castling_rights[trg];
 
 
-    usl hash = hash_board;
     hash ^= piece_keys[piece][src];
     hash ^= piece_keys[piece][trg]; 
 
@@ -281,24 +286,32 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     if(cast){
         switch(trg){
             case g1:
+                hash^= piece_keys[R][h1];
+                hash^= piece_keys[R][f1];
                 remBit(h1,pisces[R]);
                 setBit(f1,pisces[R]);
                 remBit(h1,color_bitboards[(side==BLACK)]);
                 setBit(f1,color_bitboards[(side==BLACK)]);
                 break;
             case c1:
+                hash^= piece_keys[R][a1];
+                hash^= piece_keys[R][d1];
                 remBit(a1,pisces[R]);
                 setBit(d1,pisces[R]);
                 remBit(a1,color_bitboards[(side==BLACK)]);
                 setBit(d1,color_bitboards[(side==BLACK)]);
                 break;
             case g8:
+                hash^= piece_keys[r][h8];
+                hash^= piece_keys[r][f8];
                 remBit(h8,pisces[r]);
                 setBit(f8,pisces[r]);
                 remBit(h8,color_bitboards[(side==BLACK)]);
                 setBit(f8,color_bitboards[(side==BLACK)]);
                 break;
             case c8:
+                hash^= piece_keys[r][a8];
+                hash^= piece_keys[r][d8];
                 remBit(a8,pisces[r]);
                 setBit(d8,pisces[r]);
                 remBit(a8,color_bitboards[(side==BLACK)]);
@@ -307,11 +320,12 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
         }
     }
     hash ^= cst_keys[castling]; //updating castling rights
+    hash ^= side == WHITE ? 0ULL:side_key ;
 
     if(enp){
         remBit(enp_sq + 8 -16*(side==BLACK),pisces[P + 6 * (side == WHITE)]);
         remBit(enp_sq + 8 -16*(side==BLACK),color_bitboards[(side==WHITE)]);
-        hash ^= piece_keys[pisces[P + 6 * (side == WHITE)]][enp_sq + 8 -16*(side==BLACK)]; 
+        hash ^= piece_keys[P + 6 * (side == WHITE)][enp_sq + 8 -16*(side==BLACK)]; 
     }
     bitboard= color_bitboards[WHITE] | color_bitboards[BLACK];
     side = side == WHITE ? BLACK : WHITE;
@@ -326,7 +340,7 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     hash ^= side == WHITE ? 0ULL:side_key ;
     hash_board = hash;
     // std::cout << std::hex << hash << std::endl;
-    // init_hash();
+    init_hash();
     if (is_sq_attacked(63 - __builtin_clzll(pisces[K + 6 * (side == WHITE ? 1 : 0)]), (side == BLACK ? BLACK : WHITE))) {
         return 0;
     } else {

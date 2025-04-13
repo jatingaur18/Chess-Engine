@@ -7,3 +7,4 @@ gen_moves.o
 main.d
 main.o
 chess_piece/*:Zone.Identifier
+.vscode
