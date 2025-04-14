@@ -21,6 +21,7 @@ unsigned int get_random_U32_number(){
     random_state = number;
     return number;
 }
+
 usl get_random_usl_number(){
     usl n1, n2, n3, n4;
     
@@ -34,8 +35,6 @@ usl get_random_usl_number(){
 
 chessboard::chessboard() : bitboard(18446462598732906495ULL) {
     init_attack_tables();
-    init_zobrist_keys();
-    init_hash();
 }
 
 void chessboard::printPisces() {
@@ -340,7 +339,7 @@ int chessboard::make_move(int move,int move_flag,chessboard &cb_copy) {
     hash ^= side == WHITE ? 0ULL:side_key ;
     hash_board = hash;
     // std::cout << std::hex << hash << std::endl;
-    init_hash();
+    // init_hash();
     if (is_sq_attacked(63 - __builtin_clzll(pisces[K + 6 * (side == WHITE ? 1 : 0)]), (side == BLACK ? BLACK : WHITE))) {
         return 0;
     } else {

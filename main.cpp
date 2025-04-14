@@ -17,7 +17,7 @@ string tricky_2 = "8/2p5/3p4/KP5r/1R3p1k/q7/4P1P1/8 w - - 0 1"; // tricky
 string debug = "k7/8/8/8/1p6/8/P7/K6R w - - 0 0";
 string start_pos_1 = "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1";
 string start_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-string tricky_1 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"; // tricky
+string tricky_1 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1n/PPPBBPPP/R3K2R w KQkq - 0 1"; // tricky
 
 void run(chessboard &cb) {
     cb.printBoard();
@@ -199,12 +199,12 @@ void parse_go(chessboard& cb, const char* input) {
     // depth = 6; // Reasonable default
     
     // cout<<"bestmove d2d4"<<endl;
-    // long long start_time = get_time();
+    long long start_time = get_time();
     // perft_test(cb, depth);
-    depth =8;
+    // depth =8;
     search_position(cb, depth);
-    // long long end_time = get_time();
-    // cout<<end_time-start_time<<endl;
+    long long end_time = get_time();
+    cout<<end_time-start_time<<endl;
 }
 
 
@@ -308,6 +308,8 @@ int main() {
     cb_copy.FEN(tricky_1);
     cb.FEN(tricky_1);
     
+    cb.init_zobrist_keys();
+    cb.init_hash();
     
 
     //setting up the board 
@@ -350,16 +352,16 @@ int main() {
     // cb.printPisces();
     // cout<<"tricky_1"<<endl;
     // cb.FEN(tricky_1);
-    cb.printPisces();
     // cb.printPisces();
-    perft_test(cb, 3);
-    cout << "Nodes: " << global_nodes << endl;
+    // cb.printPisces();
+    // perft_test(cb, 3);
+    // cout << "Nodes: " << global_nodes << endl;
 
 
     // cout<<cb.cst_keys[0]<<endl;
     
     // cb.FEN(start_pos);
-    // uci_loop(cb);
+    uci_loop(cb);
 
 
     // perft_test(cb, 1);
