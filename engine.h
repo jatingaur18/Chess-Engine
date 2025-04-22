@@ -1,7 +1,135 @@
 #pragma once
 
+#define hash_exact 0
+#define hash_alpha 1
+#define hash_beta 2
+#define valUNKNOWN 100000
+
 void search_position(chessboard& cb, int depth);
 int board_eval(chessboard &cb);
+
+// MVV LVA [attacker][victim]
+static int mvv_lva[12][12] = {
+     105, 205, 305, 405, 505, 605,  105, 205, 305, 405, 505, 605,
+    104, 204, 304, 404, 504, 604,  104, 204, 304, 404, 504, 604,
+    103, 203, 303, 403, 503, 603,  103, 203, 303, 403, 503, 603,
+    102, 202, 302, 402, 502, 602,  102, 202, 302, 402, 502, 602,
+    101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601,
+    100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600,
+
+    105, 205, 305, 405, 505, 605,  105, 205, 305, 405, 505, 605,
+    104, 204, 304, 404, 504, 604,  104, 204, 304, 404, 504, 604,
+    103, 203, 303, 403, 503, 603,  103, 203, 303, 403, 503, 603,
+    102, 202, 302, 402, 502, 602,  102, 202, 302, 402, 502, 602,
+    101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601,
+    100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600
+};
+
+static int material_score[12] = {
+     100,      // white pawn score
+     300,      // white knight scrore
+     350,      // white bishop score
+     500,      // white rook score
+    1000,      // white queen score
+   10000,      // white king score
+    -100,      // black pawn score
+    -300,      // black knight scrore
+    -350,      // black bishop score
+    -500,      // black rook score
+   -1000,      // black queen score
+  -10000,      // black king score
+ };
+ 
+ // pawn positional score
+ static int pawn_score[64] = 
+ {
+     90,  90,  90,  90,  90,  90,  90,  90,
+     30,  30,  30,  40,  40,  30,  30,  30,
+     20,  20,  20,  30,  30,  30,  20,  20,
+     10,  10,  10,  20,  20,  10,  10,  10,
+      5,   5,  10,  20,  20,   5,   5,   5,
+      0,   0,   0,   5,   5,   0,   0,   0,
+      0,   0,   0, -10, -10,   0,   0,   0,
+      0,   0,   0,   0,   0,   0,   0,   0
+ };
+ 
+ // knight positional score
+ static int knight_score[64] = 
+ {
+     -5,   0,   0,   0,   0,   0,   0,  -5,
+     -5,   0,   0,  10,  10,   0,   0,  -5,
+     -5,   5,  20,  20,  20,  20,   5,  -5,
+     -5,  10,  20,  30,  30,  20,  10,  -5,
+     -5,  10,  20,  30,  30,  20,  10,  -5,
+     -5,   5,  20,  10,  10,  20,   5,  -5,
+     -5,   0,   0,   0,   0,   0,   0,  -5,
+     -5, -10,   0,   0,   0,   0, -10,  -5
+ };
+ 
+ // bishop positional score
+ static int bishop_score[64] = 
+ {
+      0,   0,   0,   0,   0,   0,   0,   0,
+      0,   0,   0,   0,   0,   0,   0,   0,
+      0,   0,   0,  10,  10,   0,   0,   0,
+      0,   0,  10,  20,  20,  10,   0,   0,
+      0,   0,  10,  20,  20,  10,   0,   0,
+      0,  10,   0,   0,   0,   0,  10,   0,
+      0,  30,   0,   0,   0,   0,  30,   0,
+      0,   0, -10,   0,   0, -10,   0,   0
+ 
+ };
+ 
+ // rook positional score
+ static int rook_score[64] =
+ {
+     50,  50,  50,  50,  50,  50,  50,  50,
+     50,  50,  50,  50,  50,  50,  50,  50,
+      0,   0,  10,  20,  20,  10,   0,   0,
+      0,   0,  10,  20,  20,  10,   0,   0,
+      0,   0,  10,  20,  20,  10,   0,   0,
+      0,   0,  10,  20,  20,  10,   0,   0,
+      0,   0,  10,  20,  20,  10,   0,   0,
+      0,   0,   0,  20,  20,   0,   0,   0
+ 
+ };
+ 
+ // king positional score
+ static int king_score[64] = 
+ {
+      0,   0,   0,   0,   0,   0,   0,   0,
+      0,   0,   5,   5,   5,   5,   0,   0,
+      0,   5,   5,  10,  10,   5,   5,   0,
+      0,   5,  10,  20,  20,  10,   5,   0,
+      0,   5,  10,  20,  20,  10,   5,   0,
+      0,   0,   5,  10,  10,   5,   0,   0,
+      0,   5,   5,  -5,  -5,   0,   5,   0,
+      0,   0,   5,   0, -15,   0,  10,   0
+ };
+ 
+ // mirror positional score tables for opposite side
+ static int mirror_score[128] =
+ {
+      a1, b1, c1, d1, e1, f1, g1, h1,
+      a2, b2, c2, d2, e2, f2, g2, h2,
+      a3, b3, c3, d3, e3, f3, g3, h3,
+      a4, b4, c4, d4, e4, f4, g4, h4,
+      a5, b5, c5, d5, e5, f5, g5, h5,
+      a6, b6, c6, d6, e6, f6, g6, h6,
+      a7, b7, c7, d7, e7, f7, g7, h7,
+      a8, b8, c8, d8, e8, f8, g8, h8
+ };
+
+// int ProbeHash(int depth, int alpha, int beta,usl key);
+ 
+// void RecordHash(int depth, int val, int hashf,usl key);
+
+// typedef struct {
+//      usl hash_key;
+//      int depth;
+//      int flag;
+//      int score;
+// } tt;
 
 // pawn positional score
 const int piece_scores[12][64] = {

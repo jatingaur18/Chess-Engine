@@ -112,8 +112,7 @@ inline std::string index_to_square(int index) {
 }
 
 static inline void add_move(int move, moves_lst &moves, int score = 0) {
-    moves.move_list[moves.count].move = move;
-    moves.move_list[moves.count].score = score;
+    moves.move_list[moves.count] = move;
     moves.count++;
 }
 
@@ -134,8 +133,7 @@ static inline void print_move_list(moves_lst &moves) {
     cout << "| uci notation       | piece     | capture     | double push      | enpassent      | castling |  score   |" << endl;
     cout << "|____________________|___________|_____________|__________________|________________|__________|__________|" << endl;
     for (int i = 0; i < moves.count; i++) {
-        move_print(moves.move_list[i].move);
-        cout<<"      "<<moves.move_list[i].score<<endl;
+        move_print(moves.move_list[i]);
     }
     cout << "|____________________|___________|_____________|__________________|________________|__________|__________|" << endl;
     cout << "\n" << endl;

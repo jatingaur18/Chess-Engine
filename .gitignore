@@ -8,3 +8,4 @@ main.d
 main.o
 chess_piece/*:Zone.Identifier
 .vscode
+repomix-output.xml

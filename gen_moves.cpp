@@ -3,15 +3,9 @@
 #include <algorithm>
 using namespace std;
 
-const int piece_values[] = {
-    100, 300, 300, 500, 1000, 10000,  // White: P, N, B, R, Q, K
-    100, 300, 300, 500, 1000, 10000   // Black: p, n, b, r, q, k
-};
 
-int calculate_capture_score(int attacker, int victim, Color side) {
-    if (victim == -1) return 0; 
-    return piece_values[victim] - piece_values[attacker] + 10000;
-}
+
+
 
 static inline int lsb_ind(usl bitboard) {
     if (bitboard) {
@@ -48,14 +42,13 @@ void chessboard::generate_pawn_moves(usl board, Color side, moves_lst &moves) {
             target = lsb_ind(attack);
             int victim = get_piece_at(target);
             int attacker = P + 6 * (side == BLACK);
-            int score = (victim != -1) ? (piece_values[victim] - piece_values[attacker]) : 0;
             if ((side == WHITE && target <= h8) || (side == BLACK && target >= a1)) {
-                add_move(move_encoding(source, target, attacker, N + 6 * (side == BLACK), 1, 0, 0, 0), moves, score);
-                add_move(move_encoding(source, target, attacker, B + 6 * (side == BLACK), 1, 0, 0, 0), moves, score);
-                add_move(move_encoding(source, target, attacker, R + 6 * (side == BLACK), 1, 0, 0, 0), moves, score);
-                add_move(move_encoding(source, target, attacker, Q + 6 * (side == BLACK), 1, 0, 0, 0), moves, score);
+                add_move(move_encoding(source, target, attacker, N + 6 * (side == BLACK), 1, 0, 0, 0), moves);
+                add_move(move_encoding(source, target, attacker, B + 6 * (side == BLACK), 1, 0, 0, 0), moves);
+                add_move(move_encoding(source, target, attacker, R + 6 * (side == BLACK), 1, 0, 0, 0), moves);
+                add_move(move_encoding(source, target, attacker, Q + 6 * (side == BLACK), 1, 0, 0, 0), moves);
             } else {
-                add_move(move_encoding(source, target, attacker, 0, 1, 0, 0, 0), moves, score);
+                add_move(move_encoding(source, target, attacker, 0, 1, 0, 0, 0), moves);
             }
             remBit(target, attack);
         }
@@ -65,8 +58,7 @@ void chessboard::generate_pawn_moves(usl board, Color side, moves_lst &moves) {
             attack = pawn_attacks_table[side][source] & (1ULL << en_passant);
             if (attack) {
                 int attacker = P + 6 * (side == BLACK);
-                int score =0;
-                add_move(move_encoding(source, en_passant, attacker, 0, 1, 0, 1, 0), moves, score);
+                add_move(move_encoding(source, en_passant, attacker, 0, 1, 0, 1, 0), moves);
             }
         }
 
@@ -109,12 +101,10 @@ void chessboard::generate_knight_moves(usl board, Color side, moves_lst &moves) 
         attack = knight_attacks_table[source] & ~color_bitboards[side];
         while (attack) {
             target = lsb_ind(attack);
-            int score = 0;
             if (getBit(target, bitboard)) {
                 int victim = get_piece_at(target);
-                score = calculate_capture_score(piece, victim, side);
             }
-            add_move(move_encoding(source, target, piece, 0, getBit(target, bitboard), 0, 0, 0), moves, score);
+            add_move(move_encoding(source, target, piece, 0, getBit(target, bitboard), 0, 0, 0), moves);
             remBit(target, attack);
         }
         remBit(source, board);
@@ -133,9 +123,8 @@ void chessboard::generate_bishop_moves(usl board, Color side, moves_lst &moves) 
             int score = 0;
             if (getBit(target, bitboard)) {
                 int victim = get_piece_at(target);
-                score = calculate_capture_score(piece, victim, side);
             }
-            add_move(move_encoding(source, target, piece, 0, getBit(target, bitboard), 0, 0, 0), moves, score);
+            add_move(move_encoding(source, target, piece, 0, getBit(target, bitboard), 0, 0, 0), moves);
             remBit(target, attack);
         }
         remBit(source, board);
@@ -151,12 +140,10 @@ void chessboard::generate_rook_moves(usl board, Color side, moves_lst &moves) {
         attack = rook_attacks(source, bitboard) & ~color_bitboards[side];
         while (attack) {
             target = lsb_ind(attack);
-            int score = 0;
             if (getBit(target, bitboard)) {
                 int victim = get_piece_at(target);
-                score = calculate_capture_score(piece, victim, side);
             }
-            add_move(move_encoding(source, target, piece, 0, getBit(target, bitboard), 0, 0, 0), moves, score);
+            add_move(move_encoding(source, target, piece, 0, getBit(target, bitboard), 0, 0, 0), moves);
             remBit(target, attack);
         }
         remBit(source, board);
@@ -191,12 +178,10 @@ void chessboard::generate_king_moves(usl board, Color side, moves_lst &moves) {
         attack = king_attacks_table[source] & ~color_bitboards[side];
         while (attack) {
             target = lsb_ind(attack);
-            int score = 0;
             if (getBit(target, bitboard)) {
                 int victim = get_piece_at(target);
-                score = calculate_capture_score(piece, victim, side);
             }
-            add_move(move_encoding(source, target, piece, 0, getBit(target, bitboard), 0, 0, 0), moves, score);
+            add_move(move_encoding(source, target, piece, 0, getBit(target, bitboard), 0, 0, 0), moves);
             remBit(target, attack);
         }
         remBit(source, board);

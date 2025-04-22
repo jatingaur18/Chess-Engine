@@ -10,7 +10,6 @@ $(TARGET): $(SRCS)
 	$(CXX) $(CXXFLAGS) $(SRCS) -o $(TARGET)
 
 run: $(TARGET)
-	clear
 	./$(TARGET)
 
 clean:
