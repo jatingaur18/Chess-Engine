@@ -14,14 +14,25 @@ using namespace std;
 // vector<tt> transposition_table(4 << 20); // 4MB
 // #define TableSize() transposition_table.size()
 
+int ply_length[MAX_PLY] = {0}; // Stores the length of the move list at each ply
+int ply_move[MAX_PLY][MAX_PLY] = {0}; // Stores the move at each ply
 int ply = 0; 
-int best; 
 int killer_moves[2][MAX_PLY] = {0};  // Stores two killer moves per ply
 int history_moves[12][MAX_PLY] = {0};  // Stores two killer moves per ply
 int nodes_searched;
 
+bool followup = false;
+int scorepv = 0;
+
 
 static inline int score(int move,chessboard &cb){
+    if(scorepv){
+        if(ply_move[0][ply] == move){
+            scorepv = 0;
+
+            return 20000;
+        }
+    }
     if(move_to_cap(move)){
         int target=P;
         int ts= move_to_trg(move);
@@ -79,31 +90,21 @@ static inline int score(int move,chessboard &cb){
 //     }
 // }
 
-static inline void sort_moves(moves_lst &moves,chessboard &cb)
-{
-    // move scores
+static inline void sort_moves(moves_lst &moves,chessboard &cb){
     int move_scores[moves.count];
     
-    // score all the moves within a move list
     for (int count = 0; count < moves.count; count++)
         // score move
         move_scores[count] = score(moves.move_list[count],cb);
     
     // loop over current move within a move list
-    for (int current_move = 0; current_move < moves.count; current_move++)
-    {
-        // loop over next move within a move list
-        for (int next_move = current_move + 1; next_move < moves.count; next_move++)
-        {
-            // compare current and next move scores
-            if (move_scores[current_move] < move_scores[next_move])
-            {
-                // swap scores
+    for (int current_move = 0; current_move < moves.count; current_move++){
+        for (int next_move = current_move + 1; next_move < moves.count; next_move++){
+            if (move_scores[current_move] < move_scores[next_move]){
                 int temp_score = move_scores[current_move];
                 move_scores[current_move] = move_scores[next_move];
                 move_scores[next_move] = temp_score;
                 
-                // swap moves
                 int temp_move = moves.move_list[current_move];
                 moves.move_list[current_move] = moves.move_list[next_move];
                 moves.move_list[next_move] = temp_move;
@@ -246,6 +247,16 @@ int board_eval(chessboard &cb){
     return (cb.side == WHITE) ? score : -score;
 }
 
+static inline void enable_pv_score(moves_lst &moves){
+    followup = false;
+    for(int cnt=0; cnt < moves.count; cnt++){
+        if(moves.move_list[cnt] == ply_move[0][ply]){
+            followup = true;
+            scorepv = 1;
+        }
+    }
+}
+
 
 
 static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
@@ -253,12 +264,19 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
     // bool found_pv=false;
     bool found = false;
 
-    int flg = hash_alpha;
-    int score;
+    ply_length[ply] = ply;
 
     if (depth == 0) {
         return quiescence(alpha,beta,cb);
     }
+
+    if(ply>MAX_PLY-1){
+        return board_eval(cb);
+    }
+
+    int flg = hash_alpha;
+    int score;
+
 
     nodes_searched++;
     
@@ -268,14 +286,15 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
         depth++;
     }
     
-    int best_now = 0;
-    int alpha_o = alpha;
     int legal_mov = 0;
 
     int check = cb.is_sq_attacked(lsb_ind(cb.pisces[5 + 6 * (cb.side == BLACK)]), cb.side == WHITE ? BLACK : WHITE);
     
     moves_lst moves;
     cb.generate_moves(moves);
+    if(followup){
+        enable_pv_score(moves);
+    }
     sort_moves(moves,cb);
 
     // Assign scores to killer moves
@@ -310,20 +329,24 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
             }
             ply--;
             if (score >= beta) {
-                killer_moves[1][ply] = killer_moves[0][ply];
-                killer_moves[0][ply] = moves.move_list[i];
+                if(!move_to_cap(moves.move_list[i])){
+                    killer_moves[1][ply] = killer_moves[0][ply];
+                    killer_moves[0][ply] = moves.move_list[i];
+                }
                 return beta;
             }
             if (score > alpha) {
                 // found=true;
                 flg = hash_exact;
-
+                ply_move[ply][ply] = moves.move_list[i];
+                for(int ply_n = ply+1; ply_n < ply_length[ply+1]; ply_n++){
+                    ply_move[ply][ply_n] = ply_move[ply+1][ply_n];
+                }
+                ply_length[ply] = ply_length[ply+1];
                 history_moves[move_to_piece(moves.move_list[i])][move_to_trg(moves.move_list[i])] += depth * depth;
 
                 alpha = score;
-                if (ply == 0) {
-                    best_now = moves.move_list[i];
-                }
+                
             }
         }
     }
@@ -335,26 +358,63 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
             return 0;
         }
     }
-    if (alpha_o != alpha) {
-        best = best_now;
-    }
+
     return alpha;
+}
+
+static inline string parse_move(int best){
+    string best_move = index_to_square(move_to_src(best)) + index_to_square(move_to_trg(best));
+    if (move_to_prom(best)) {
+        best_move += prom_piece_list[move_to_prom(best)];
+    }
+    return best_move;
 }
 
 void search_position(chessboard& cb, int depth) {
     ply = 0;
-    best = 0;
     nodes_searched = 0;
-    for (int p = 0; p < MAX_PLY; p++) {
-        killer_moves[0][p] = 0;
-        killer_moves[1][p] = 0;
-    }
-    int score = negamax(cb, depth, -50000, 50000);
-    if (best) {
-        string best_move = index_to_square(move_to_src(best)) + index_to_square(move_to_trg(best));
-        if (move_to_prom(best)) {
-            best_move += prom_piece_list[move_to_prom(best)];
+
+    memset(ply_length, 0, sizeof(ply_length));
+    memset(ply_move, 0, sizeof(ply_move));
+    memset(killer_moves, 0, sizeof(killer_moves));
+    memset(history_moves, 0, sizeof(history_moves));
+    followup = false;
+    scorepv = 0;
+    for(int c_depth=1;c_depth<=depth;c_depth++){
+        nodes_searched = 0;
+        followup=true;
+        ply = 0;
+        int score = negamax(cb, c_depth, -50000, 50000);
+        for(int c=0;c<ply_length[0];c++){
+            string mov = parse_move(ply_move[0][c]);
+            cout << mov << " "; 
         }
-        cout << "bestmove " << best_move << " nodes searched " << nodes_searched << endl;
+        cout<<nodes_searched<<" ";
+        cout << endl;
     }
+
+
+
+
+
+    memset(ply_length, 0, sizeof(ply_length));
+    memset(ply_move, 0, sizeof(ply_move));
+    memset(killer_moves, 0, sizeof(killer_moves));
+    memset(history_moves, 0, sizeof(history_moves));
+
+    followup = false;
+    scorepv = 0;
+    nodes_searched = 0;
+    ply = 0;
+    
+    int score = negamax(cb, depth, -50000, 50000);
+    
+    for(int c=0;c<ply_length[0];c++){
+        string mov = parse_move(ply_move[0][c]);
+        cout << mov << " "; 
+    }
+    cout << endl;
+    string best_move = parse_move(ply_move[0][0]);
+    cout << "bestmove " << best_move << " nodes searched " << nodes_searched << endl;
+
 }
