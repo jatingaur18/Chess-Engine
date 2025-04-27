@@ -122,7 +122,7 @@ The engine supports:
 - [ ] Transposition Table (Zobrist Hashing)  
 
 ###  Phase 4: Tactical Stability
-- [ ] Quiescence Search  
+- [x] Quiescence Search  
 - [ ] Static Exchange Evaluation (SEE)  
 - [ ] Stand Pat Evaluation  
 
