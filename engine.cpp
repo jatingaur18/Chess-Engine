@@ -265,9 +265,6 @@ static inline void enable_pv_score(moves_lst &moves){
 
 static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
 
-    // bool found_pv=false;
-    bool found = false;
-
     
     ply_length[ply] = ply;
     
@@ -331,31 +328,24 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
         if (cb_after_move.make_move(moves.move_list[i], 1, cb_after_move)) {
             legal_mov++;
             ply++;
-            if (found) {
-                score = -negamax(cb_after_move, depth - 1, -alpha - 1, -alpha);
-                if (score > alpha && score < beta) {
-                    score = -negamax(cb_after_move, depth - 1, -beta, -alpha);
-                }
-            } 
-            else {
-                if(mov_srch == 0){
-                    score = -negamax(cb_after_move, depth - 1, -beta, -alpha);
+            if(mov_srch == 0){
+                score = -negamax(cb_after_move, depth - 1, -beta, -alpha);
+            }
+            else{
+                if(mov_srch>=full_depth && depth >= reduced_depth && !in_check){
+                    score = -negamax(cb_after_move, depth - 2, -alpha-1, -alpha);
                 }
                 else{
-                    if(mov_srch>=full_depth && depth >= reduced_depth && !in_check){
-                        score = -negamax(cb_after_move, depth - 2, -alpha-1, -alpha);
-                    }
-                    else{
-                        score=alpha+1;
-                    }
-                    if(score > alpha){
-                        score = -negamax(cb_after_move, depth - 1, -alpha-1, -alpha);
-                        if(score > alpha && score < beta){
-                            score = -negamax(cb_after_move, depth - 1, -beta, -alpha);
-                        }
+                    score=alpha+1;
+                }
+                if(score > alpha){
+                    score = -negamax(cb_after_move, depth - 1, -alpha-1, -alpha);
+                    if(score > alpha && score < beta){
+                        score = -negamax(cb_after_move, depth - 1, -beta, -alpha);
                     }
                 }
             }
+            
             ply--;
             mov_srch++;
 
@@ -367,7 +357,6 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
                 return beta;
             }
             if (score > alpha) {
-                found=true;
                 flg = hash_exact;
                 ply_move[ply][ply] = moves.move_list[i];
                 for(int ply_n = ply+1; ply_n < ply_length[ply+1]; ply_n++){
@@ -409,12 +398,29 @@ void search_position(chessboard& cb, int depth) {
     memset(ply_move, 0, sizeof(ply_move));
     memset(killer_moves, 0, sizeof(killer_moves));
     memset(history_moves, 0, sizeof(history_moves));
-    followup = false;
-    scorepv = 0;
+
+    int alpha = -50000;
+    int beta = 50000; 
     for(int c_depth=1;c_depth<=depth;c_depth++){
+        scorepv = 0;
         followup=true;
         ply = 0;
-        int score = negamax(cb, c_depth, -50000, 50000);
+        int score = negamax(cb, c_depth, alpha, beta);
+
+        if(score<=alpha || score>=beta){
+            alpha = -50000;
+            beta = 50000;
+            continue;
+        }
+
+        alpha = score - 50;
+        beta = score + 50;
+
+
+
+
+
+
         for(int c=0;c<ply_length[0];c++){
             string mov = parse_move(ply_move[0][c]);
             cout << mov << " "; 
