@@ -127,7 +127,7 @@ The engine supports:
 - [ ] Stand Pat Evaluation  
 
 ###  Phase 5: Advanced Pruning Techniques
-- [ ] Principal Variation Search (PVS)  
+- [x] Principal Variation Search (PVS)  
 - [x] Late Move Reductions (LMR)  
 - [ ] Null Move Pruning  
 - [ ] Aspiration Windows  
