@@ -128,7 +128,7 @@ The engine supports:
 
 ###  Phase 5: Advanced Pruning Techniques
 - [ ] Principal Variation Search (PVS)  
-- [ ] Late Move Reductions (LMR)  
+- [x] Late Move Reductions (LMR)  
 - [ ] Null Move Pruning  
 - [ ] Aspiration Windows  
 

@@ -14,6 +14,10 @@ using namespace std;
 // vector<tt> transposition_table(4 << 20); // 4MB
 // #define TableSize() transposition_table.size()
 
+const int full_depth = 4;
+const int reduced_depth = 3;
+const int null_depth = 1;
+
 int ply_length[MAX_PLY] = {0}; // Stores the length of the move list at each ply
 int ply_move[MAX_PLY][MAX_PLY] = {0}; // Stores the move at each ply
 int ply = 0; 
@@ -264,8 +268,9 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
     // bool found_pv=false;
     bool found = false;
 
+    
     ply_length[ply] = ply;
-
+    
     if (depth == 0) {
         return quiescence(alpha,beta,cb);
     }
@@ -273,7 +278,7 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
     if(ply>MAX_PLY-1){
         return board_eval(cb);
     }
-
+    
     int flg = hash_alpha;
     int score;
 
@@ -287,6 +292,17 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
     }
     
     int legal_mov = 0;
+    chessboard null_move_board;
+    if(depth>=3 && !in_check && ply){
+        null_move_board.deep_copy(cb);
+        null_move_board.side = opp;
+        null_move_board.en_passant = -1;
+        int null_score = -negamax(null_move_board, depth-1-2, -beta, -beta+1);
+        if(null_score >= beta){
+            return beta;
+        }
+
+    }
 
     int check = cb.is_sq_attacked(lsb_ind(cb.pisces[5 + 6 * (cb.side == BLACK)]), cb.side == WHITE ? BLACK : WHITE);
     
@@ -296,18 +312,19 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
         enable_pv_score(moves);
     }
     sort_moves(moves,cb);
-
+    
     // Assign scores to killer moves
     // for (int i = 0; i < moves.count; i++) {
-    //     int move = moves.move_list[i];
+        //     int move = moves.move_list[i];
     //     if (move == killer_moves[ply][0]) {
     //         moves.move_list[i] = 9000;  // First killer
     //     } else if (move == killer_moves[ply][1]) {
     //         moves.move_list[i] = 8000;  // Second killer
     //     }
     // }
-
-
+    
+    int mov_srch = 0;
+    
     for (int i = 0; i < moves.count; i++) {
         chessboard cb_after_move;
         cb_after_move.deep_copy(cb);
@@ -315,19 +332,33 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
             legal_mov++;
             ply++;
             if (found) {
-                // Search subsequent moves with null window
                 score = -negamax(cb_after_move, depth - 1, -alpha - 1, -alpha);
                 if (score > alpha && score < beta) {
-                    // Re-search with full window if the null window score indicates a potential better move
                     score = -negamax(cb_after_move, depth - 1, -beta, -alpha);
                 }
             } 
             else {
-                // Search the first move with full window
-                score = -negamax(cb_after_move, depth - 1, -beta, -alpha);
-                // found = false;
+                if(mov_srch == 0){
+                    score = -negamax(cb_after_move, depth - 1, -beta, -alpha);
+                }
+                else{
+                    if(mov_srch>=full_depth && depth >= reduced_depth && !in_check){
+                        score = -negamax(cb_after_move, depth - 2, -alpha-1, -alpha);
+                    }
+                    else{
+                        score=alpha+1;
+                    }
+                    if(score > alpha){
+                        score = -negamax(cb_after_move, depth - 1, -alpha-1, -alpha);
+                        if(score > alpha && score < beta){
+                            score = -negamax(cb_after_move, depth - 1, -beta, -alpha);
+                        }
+                    }
+                }
             }
             ply--;
+            mov_srch++;
+
             if (score >= beta) {
                 if(!move_to_cap(moves.move_list[i])){
                     killer_moves[1][ply] = killer_moves[0][ply];
@@ -336,7 +367,7 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
                 return beta;
             }
             if (score > alpha) {
-                // found=true;
+                found=true;
                 flg = hash_exact;
                 ply_move[ply][ply] = moves.move_list[i];
                 for(int ply_n = ply+1; ply_n < ply_length[ply+1]; ply_n++){
@@ -381,7 +412,6 @@ void search_position(chessboard& cb, int depth) {
     followup = false;
     scorepv = 0;
     for(int c_depth=1;c_depth<=depth;c_depth++){
-        nodes_searched = 0;
         followup=true;
         ply = 0;
         int score = negamax(cb, c_depth, -50000, 50000);
@@ -393,28 +423,28 @@ void search_position(chessboard& cb, int depth) {
         cout << endl;
     }
 
-
-
-
-
-    memset(ply_length, 0, sizeof(ply_length));
-    memset(ply_move, 0, sizeof(ply_move));
-    memset(killer_moves, 0, sizeof(killer_moves));
-    memset(history_moves, 0, sizeof(history_moves));
-
-    followup = false;
-    scorepv = 0;
-    nodes_searched = 0;
-    ply = 0;
-    
-    int score = negamax(cb, depth, -50000, 50000);
-    
-    for(int c=0;c<ply_length[0];c++){
-        string mov = parse_move(ply_move[0][c]);
-        cout << mov << " "; 
-    }
-    cout << endl;
     string best_move = parse_move(ply_move[0][0]);
     cout << "bestmove " << best_move << " nodes searched " << nodes_searched << endl;
+
+
+
+
+    // memset(ply_length, 0, sizeof(ply_length));
+    // memset(ply_move, 0, sizeof(ply_move));
+    // memset(killer_moves, 0, sizeof(killer_moves));
+    // memset(history_moves, 0, sizeof(history_moves));
+
+    // followup = false;
+    // scorepv = 0;
+    // nodes_searched = 0;
+    // ply = 0;
+    
+    // int score = negamax(cb, depth, -50000, 50000);
+    
+    // for(int c=0;c<ply_length[0];c++){
+    //     string mov = parse_move(ply_move[0][c]);
+    //     cout << mov << " "; 
+    // }
+    // cout << endl;
 
 }
