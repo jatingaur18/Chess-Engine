@@ -11,8 +11,15 @@ using namespace std;
 
 #define MAX_PLY 64
 
-// vector<tt> transposition_table(4 << 20); // 4MB
-// #define TableSize() transposition_table.size()
+typedef struct {
+    usl hash_key;
+    int depth;
+    int flag;
+    int score;
+} tt;
+
+vector<tt> transposition_table(4 << 20); // 4MB
+#define TableSize() transposition_table.size()
 
 const int full_depth = 4;
 const int reduced_depth = 3;
@@ -121,6 +128,11 @@ static inline void sort_moves(moves_lst &moves,chessboard &cb){
 static inline int quiescence(int alpha, int beta,chessboard &cb){
     int evaluation = board_eval(cb);
     nodes_searched++;
+
+    if(ply>MAX_PLY-1){
+        return board_eval(cb);
+    }
+
     if(evaluation >= beta){
         return beta;
     }
@@ -144,11 +156,12 @@ static inline int quiescence(int alpha, int beta,chessboard &cb){
             ply++;
             int score = -quiescence(-beta, -alpha, cb_after_move);
             ply--;
-            if(score >= beta){
-                return beta;
-            }
+            
             if(score > alpha){
                 alpha = score;
+                if(score >= beta){
+                    return beta;
+                }
             }
         }
     }
@@ -160,46 +173,45 @@ static inline int quiescence(int alpha, int beta,chessboard &cb){
 
 
 
-// void empty_tt(){
-//     for(auto &i : transposition_table){
-//         i.hash_key = 0;
-//         i.depth = 0;
-//         i.flag = 0;
-//         i.score = 0;
-//     }
-// }
+void empty_tt(){
+    for(auto &i : transposition_table){
+        i.hash_key = 0;
+        i.depth = 0;
+        i.flag = 0;
+        i.score = 0;
+    }
+}
 
 
-// int ProbeHash(int depth, int alpha, int beta,usl key){
+int ProbeHash(int depth, int alpha, int beta,usl key){
 
-//     tt * phashe = &transposition_table[key % TableSize()];
+    tt * phashe = &transposition_table[key % TableSize()];
 
-//     if (phashe->hash_key == key) {
-//         if (phashe->depth >= depth) {
-//             if (phashe->flag == hash_exact)
-//                 return phashe->score;
-//             if ((phashe->flag == hash_alpha) &&
-//                 (phashe->score <= alpha))
-//                 return alpha;
-//             if ((phashe->flag == hash_beta) && (phashe->score >= beta))
-//                 return beta;
-//         }
-//         // RememberBestMove();
+    if(phashe->hash_key == key) {
+        if(phashe->depth >= depth) {
+            if(phashe->flag == hash_exact)
+                return phashe->score;
+            if((phashe->flag == hash_alpha) && (phashe->score <= alpha))
+                return alpha;
+            if((phashe->flag == hash_beta) && (phashe->score >= beta))
+                return beta;
+        }
+        // RememberBestMove();
 
-//     }
+    }
 
-//     return valUNKNOWN;
+    return valUNKNOWN;
 
-// }
+}
 
-// void RecordHash(int depth, int val, int hashf,usl key){
+void RecordHash(int depth, int val, int hashf,usl key){
 
-//     tt * phashe = &transposition_table[key % TableSize()];
-//     phashe->hash_key = key;
-//     phashe->score = val;
-//     phashe->flag = hashf;
-//     phashe->depth = depth;
-// }
+    tt * phashe = &transposition_table[key % TableSize()];
+    phashe->hash_key = key;
+    phashe->score = val;
+    phashe->flag = hashf;
+    phashe->depth = depth;
+}
 
 
 
@@ -278,7 +290,9 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
     
     int flg = hash_alpha;
     int score;
-
+    if(ply && (score = ProbeHash(depth, alpha, beta, cb.hash_board)) != valUNKNOWN){
+        return score;
+    }
 
     nodes_searched++;
     
@@ -292,9 +306,20 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
     chessboard null_move_board;
     if(depth>=3 && !in_check && ply){
         null_move_board.deep_copy(cb);
+        ply++;
         null_move_board.side = opp;
+
+        if(cb.en_passant != -1){
+            null_move_board.hash_board ^= cb.enp_keys[cb.en_passant];
+        }
+
         null_move_board.en_passant = -1;
+        null_move_board.hash_board ^= cb.side_key;
+        
         int null_score = -negamax(null_move_board, depth-1-2, -beta, -beta+1);
+        
+        ply--;
+
         if(null_score >= beta){
             return beta;
         }
@@ -349,13 +374,7 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
             ply--;
             mov_srch++;
 
-            if (score >= beta) {
-                if(!move_to_cap(moves.move_list[i])){
-                    killer_moves[1][ply] = killer_moves[0][ply];
-                    killer_moves[0][ply] = moves.move_list[i];
-                }
-                return beta;
-            }
+            
             if (score > alpha) {
                 flg = hash_exact;
                 ply_move[ply][ply] = moves.move_list[i];
@@ -366,6 +385,15 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
                 history_moves[move_to_piece(moves.move_list[i])][move_to_trg(moves.move_list[i])] += depth * depth;
 
                 alpha = score;
+
+                if (score >= beta) {
+                    RecordHash(depth, beta, hash_beta, cb.hash_board);
+                    if(!move_to_cap(moves.move_list[i])){
+                        killer_moves[1][ply] = killer_moves[0][ply];
+                        killer_moves[0][ply] = moves.move_list[i];
+                    }
+                    return beta;
+                }
                 
             }
         }
@@ -378,6 +406,7 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
             return 0;
         }
     }
+    RecordHash(depth, alpha, flg, cb.hash_board);
 
     return alpha;
 }
@@ -398,6 +427,7 @@ void search_position(chessboard& cb, int depth) {
     memset(ply_move, 0, sizeof(ply_move));
     memset(killer_moves, 0, sizeof(killer_moves));
     memset(history_moves, 0, sizeof(history_moves));
+    empty_tt();
 
     int alpha = -50000;
     int beta = 50000; 
