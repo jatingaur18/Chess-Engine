@@ -201,7 +201,7 @@ void parse_go(chessboard& cb, const char* input) {
     // cout<<"bestmove d2d4"<<endl;
     long long start_time = get_time();
     // perft_test(cb, depth);
-    // depth =8;
+    depth =10;
     search_position(cb, depth);
     long long end_time = get_time();
     cout<<end_time-start_time<<endl;

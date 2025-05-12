@@ -1,5 +1,6 @@
 a.out
 a
+cmk.c
 board.d
 board.o
 gen_moves.d
@@ -9,3 +10,6 @@ main.o
 chess_piece/*:Zone.Identifier
 .vscode
 repomix-output.xml
+Crow-1.2.1-Linux
+pgns
+server

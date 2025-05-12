@@ -130,7 +130,7 @@ static inline int quiescence(int alpha, int beta,chessboard &cb){
     nodes_searched++;
 
     if(ply>MAX_PLY-1){
-        return board_eval(cb);
+        return evaluation;
     }
 
     if(evaluation >= beta){
@@ -427,7 +427,7 @@ void search_position(chessboard& cb, int depth) {
     memset(ply_move, 0, sizeof(ply_move));
     memset(killer_moves, 0, sizeof(killer_moves));
     memset(history_moves, 0, sizeof(history_moves));
-    empty_tt();
+    // empty_tt();
 
     int alpha = -50000;
     int beta = 50000; 
@@ -451,16 +451,18 @@ void search_position(chessboard& cb, int depth) {
 
 
 
-        for(int c=0;c<ply_length[0];c++){
-            string mov = parse_move(ply_move[0][c]);
-            cout << mov << " "; 
-        }
-        cout<<nodes_searched<<" ";
-        cout << endl;
+        // for(int c=0;c<ply_length[0];c++){
+        //     string mov = parse_move(ply_move[0][c]);
+        //     cout << mov << " "; 
+        // }
+        // cout<<nodes_searched<<" ";
+        // cout << endl;
     }
 
     string best_move = parse_move(ply_move[0][0]);
-    cout << "bestmove " << best_move << " nodes searched " << nodes_searched << endl;
+    cout << "bestmove " << best_move ;
+    // cout<< " nodes searched " << nodes_searched;
+    cout << endl;
 
 
 
