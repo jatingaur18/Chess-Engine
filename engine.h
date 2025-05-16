@@ -5,7 +5,7 @@
 #define hash_beta 2
 #define valUNKNOWN 100000
 
-void search_position(chessboard& cb, int depth);
+string search_position(chessboard& cb, int depth);
 int board_eval(chessboard &cb);
 
 // MVV LVA [attacker][victim]

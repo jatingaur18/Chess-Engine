@@ -10,7 +10,7 @@ using namespace std;
 
 
 #define MAX_PLY 64
-
+int cunt=0;
 typedef struct {
     usl hash_key;
     int depth;
@@ -18,7 +18,7 @@ typedef struct {
     int score;
 } tt;
 
-vector<tt> transposition_table(4 << 20); // 4MB
+vector<tt> transposition_table(4 << 16);
 #define TableSize() transposition_table.size()
 
 const int full_depth = 4;
@@ -205,7 +205,7 @@ int ProbeHash(int depth, int alpha, int beta,usl key){
 }
 
 void RecordHash(int depth, int val, int hashf,usl key){
-
+    cunt++;
     tt * phashe = &transposition_table[key % TableSize()];
     phashe->hash_key = key;
     phashe->score = val;
@@ -419,7 +419,8 @@ static inline string parse_move(int best){
     return best_move;
 }
 
-void search_position(chessboard& cb, int depth) {
+string search_position(chessboard& cb, int depth) {
+    // cout<<sizeof(tt)<<endl;
     ply = 0;
     nodes_searched = 0;
 
@@ -460,9 +461,11 @@ void search_position(chessboard& cb, int depth) {
     }
 
     string best_move = parse_move(ply_move[0][0]);
-    cout << "bestmove " << best_move ;
-    // cout<< " nodes searched " << nodes_searched;
-    cout << endl;
+    // cout << "bestmove " << best_move ;
+    // // cout<< " nodes searched " << nodes_searched;
+    // cout << endl;
+    // cout<<"tt push -> "<<cunt<<endl;
+    return best_move;
 
 
 
