@@ -9,8 +9,10 @@ export default function App() {
   const [side, setSide] = useState<"white" | "black">("white");
   const ws = useRef<WebSocket | null>(null);
 
+
+
   useEffect(() => {
-    ws.current = new WebSocket("ws://localhost:8080/ws");
+    ws.current = new WebSocket(import.meta.env.VITE_SERVER as string);
     ws.current.onopen = () => console.log("WebSocket connected");
     ws.current.onmessage = (event) => {
       const msg = event.data as string;
@@ -43,7 +45,7 @@ export default function App() {
       }
       else if (msg.startsWith("pid:")) {
         console.log("Sending go depth 4 command");
-        ws.current?.send("go depth ");
+        ws.current?.send("go depth 8");
       }
       else {
         console.log("Engine response:", msg);
@@ -77,14 +79,13 @@ export default function App() {
 
   const handlePromotion = (piece: string, from: Square, to: Square): boolean => {
     const promotion = piece[1].toLowerCase();
-    return makeMove(from, to, promotion, piece);
+    return makeMove(from, to, promotion);
   };
 
   const makeMove = (
     from: Square,
     to: Square,
-    promotion: string = "",
-    piece: string = ""
+    promotion: string = ""
   ): boolean => {
     if (!gameOn) return false;
 
@@ -93,7 +94,6 @@ export default function App() {
     const result = newGame.move({ from, to, promotion });
     if (result) {
       setGame(newGame);
-      
       if (ws.current) {
         const userTurn = side.charAt(0); // "w" or "b" 
         const currentTurn = newGame.turn(); // "w" or "b"
@@ -125,8 +125,8 @@ export default function App() {
               onPromotionPieceSelect={(piece, src, dest) =>
                 handlePromotion(piece as string, src as Square, dest as Square)
               }
-              onPieceDrop={(src, dest, piece) =>
-                makeMove(src, dest, "", piece as string)
+              onPieceDrop={(src, dest) =>
+                makeMove(src, dest, "")
               }
               boardWidth={400}
               boardOrientation={side}
