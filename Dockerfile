@@ -1,19 +1,19 @@
-FROM debian:bullseye-slim
-
-# Install basic runtime dependencies (adjust as needed)
-RUN apt-get update && apt-get install -y \
-    libstdc++6 \
-    && rm -rf /var/lib/apt/lists/*
+FROM gcc:12
 
 WORKDIR /app
 
-# Copy only the binary
-COPY server ./server
+COPY . .
 
-# Make it executable
-RUN chmod +x ./server
+RUN apt-get update && apt-get install -y dpkg sudo && apt-get install -f -y
+
+RUN dpkg -i Crow-1.2.1-Linux.deb || true && apt-get install -f -y
+
+
+RUN make
+
+# Compile the server
+RUN g++ -std=c++17 -o server server.cpp -pthread
 
 EXPOSE 8080
 
-# Run the server binary
 CMD ["./server"]

@@ -1,0 +1,16 @@
+client
+a.out
+cmk.c
+board.d
+board.o
+gen_moves.d
+gen_moves.o
+main.d
+main.o
+chess_piece/*:Zone.Identifier
+.vscode
+repomix-output.xml
+Crow-1.2.1-Linux
+pgns
+server
+Crow-1.2.1-Linux.deb:Zone.Identifier

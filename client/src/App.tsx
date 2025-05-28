@@ -12,7 +12,7 @@ export default function App() {
 
 
   useEffect(() => {
-    ws.current = new WebSocket(import.meta.env.VITE_SERVER as string);
+    ws.current = new WebSocket("ws://localhost:8080/ws");
     ws.current.onopen = () => console.log("WebSocket connected");
     ws.current.onmessage = (event) => {
       const msg = event.data as string;
