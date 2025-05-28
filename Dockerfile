@@ -1,19 +1,29 @@
-FROM debian:bullseye-slim
+# Stage 1: Build the application
+FROM alpine:latest AS build
 
-# Install basic runtime dependencies (adjust as needed)
-RUN apt-get update && apt-get install -y \
-    libstdc++6 \
-    && rm -rf /var/lib/apt/lists/*
+# Install required packages (no pthread-dev, pthread is part of libc/musl)
+RUN apk add --no-cache g++ make boost-dev
 
+# Set working directory
 WORKDIR /app
 
-# Copy only the binary
-COPY server ./server
+# Copy source files
+COPY . .
 
-# Make it executable
-RUN chmod +x ./server
+# Compile the chess engine (adjust this as per your actual Makefile or source setup)
+RUN make
 
-EXPOSE 8080
+# Stage 2: Create a minimal runtime image
+FROM alpine:latest
 
-# Run the server binary
-CMD ["./server"]
+# Install runtime dependencies for boost (you may need libstdc++ too)
+RUN apk add --no-cache boost-system libstdc++
+
+# Set working directory
+WORKDIR /app
+
+# Copy the compiled binary from the builder stage
+COPY --from=build /app/chess_engine .
+
+# Run the chess engine by default (change 'chess_engine' to your binary name)
+CMD ["./chess_engine"]
