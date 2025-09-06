@@ -10,7 +10,6 @@ using namespace std;
 
 
 #define MAX_PLY 64
-int cunt=0;
 typedef struct {
     usl hash_key;
     int depth;
@@ -18,7 +17,7 @@ typedef struct {
     int score;
 } tt;
 
-vector<tt> transposition_table(4 << 16);
+vector<tt> transposition_table(4 << 20);
 #define TableSize() transposition_table.size()
 
 const int full_depth = 4;
@@ -205,7 +204,6 @@ int ProbeHash(int depth, int alpha, int beta,usl key){
 }
 
 void RecordHash(int depth, int val, int hashf,usl key){
-    cunt++;
     tt * phashe = &transposition_table[key % TableSize()];
     phashe->hash_key = key;
     phashe->score = val;
@@ -273,7 +271,13 @@ static inline void enable_pv_score(moves_lst &moves){
     }
 }
 
-
+static inline string parse_move(int best){
+    string best_move = index_to_square(move_to_src(best)) + index_to_square(move_to_trg(best));
+    if (move_to_prom(best)) {
+        best_move += prom_piece_list[move_to_prom(best)];
+    }
+    return best_move;
+}
 
 static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
 
@@ -411,15 +415,10 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
     return alpha;
 }
 
-static inline string parse_move(int best){
-    string best_move = index_to_square(move_to_src(best)) + index_to_square(move_to_trg(best));
-    if (move_to_prom(best)) {
-        best_move += prom_piece_list[move_to_prom(best)];
-    }
-    return best_move;
-}
+
 
 string search_position(chessboard& cb, int depth) {
+    // cout<<" eval - "<<board_eval(cb)<<" "<<endl;
     // cout<<sizeof(tt)<<endl;
     ply = 0;
     nodes_searched = 0;
@@ -464,8 +463,6 @@ string search_position(chessboard& cb, int depth) {
     // cout << "bestmove " << best_move ;
     // // cout<< " nodes searched " << nodes_searched;
     // cout << endl;
-    // cout<<"tt push -> "<<cunt<<endl;
-    return best_move;
 
 
 
@@ -487,5 +484,6 @@ string search_position(chessboard& cb, int depth) {
     //     cout << mov << " "; 
     // }
     // cout << endl;
-
+        
+    return best_move;
 }
