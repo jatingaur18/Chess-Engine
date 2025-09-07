@@ -57,7 +57,7 @@ export default function App() {
 
   const EngineMove = (currentGame: Chess) => {
     if (!engineReady) return;
-    let bestMove = engineApi.current?.parseGo(8);
+    let bestMove = engineApi.current?.parseGo(10);
     if (!bestMove) return;
 
     if (bestMove.startsWith("bestmove")) {
