@@ -28,8 +28,9 @@ int ply_length[MAX_PLY] = {0}; // Stores the length of the move list at each ply
 int ply_move[MAX_PLY][MAX_PLY] = {0}; // Stores the move at each ply
 int ply = 0; 
 int killer_moves[2][MAX_PLY] = {0};  // Stores two killer moves per ply
-int history_moves[12][MAX_PLY] = {0};  // Stores two killer moves per ply
+int history_moves[12][64] = {0};  // Stores history for each piece/square combination
 int nodes_searched;
+const int DELTA_MARGIN = 200;
 
 bool followup = false;
 int scorepv = 0;
@@ -101,25 +102,15 @@ static inline int score(int move,chessboard &cb){
 // }
 
 static inline void sort_moves(moves_lst &moves,chessboard &cb){
-    int move_scores[moves.count];
-    
-    for (int count = 0; count < moves.count; count++)
-        // score move
-        move_scores[count] = score(moves.move_list[count],cb);
-    
-    // loop over current move within a move list
-    for (int current_move = 0; current_move < moves.count; current_move++){
-        for (int next_move = current_move + 1; next_move < moves.count; next_move++){
-            if (move_scores[current_move] < move_scores[next_move]){
-                int temp_score = move_scores[current_move];
-                move_scores[current_move] = move_scores[next_move];
-                move_scores[next_move] = temp_score;
-                
-                int temp_move = moves.move_list[current_move];
-                moves.move_list[current_move] = moves.move_list[next_move];
-                moves.move_list[next_move] = temp_move;
-            }
-        }
+    std::vector<std::pair<int,int>> scored;
+    scored.reserve(moves.count);
+    for (int i = 0; i < moves.count; ++i) {
+        scored.emplace_back(score(moves.move_list[i], cb), moves.move_list[i]);
+    }
+    std::stable_sort(scored.begin(), scored.end(),
+        [](const auto &a, const auto &b) { return a.first > b.first; });
+    for (int i = 0; i < moves.count; ++i) {
+        moves.move_list[i] = scored[i].second;
     }
 }
 
@@ -140,16 +131,33 @@ static inline int quiescence(int alpha, int beta,chessboard &cb){
     }
     
     moves_lst moves;
-    
     cb.generate_moves(moves);
     sort_moves(moves,cb);
 
-    
     chessboard cb_after_move;
     for(int count = 0; count < moves.count; count++){        
         if(!move_to_cap(moves.move_list[count])){
             continue;
         }
+        
+        int target=P;
+        int ts= move_to_trg(moves.move_list[count]);
+        int s = P;
+        int e = K;
+        if(cb.side == WHITE){
+            s=p;
+            e=k;
+        }
+        for(int i=s;i<=e;i++){
+            if(cb.getBit(ts,cb.pisces[i])){
+                target=i;
+                break;
+            }
+        }
+        if(evaluation + material_score[target] + DELTA_MARGIN < alpha){
+            continue;
+        }
+        
         cb_after_move.deep_copy(cb);
         if(cb_after_move.make_move(moves.move_list[count], 1, cb_after_move)){
             ply++;
@@ -386,7 +394,8 @@ static inline int negamax(chessboard &cb, int depth, int alpha, int beta) {
                     ply_move[ply][ply_n] = ply_move[ply+1][ply_n];
                 }
                 ply_length[ply] = ply_length[ply+1];
-                history_moves[move_to_piece(moves.move_list[i])][move_to_trg(moves.move_list[i])] += depth * depth;
+                int trg = move_to_trg(moves.move_list[i]);
+                if(trg < 64) history_moves[move_to_piece(moves.move_list[i])][trg] += depth * depth;
 
                 alpha = score;
 
